@@ -69,6 +69,15 @@ let clusterState = {
   membersByRoot: new Map()
 };
 
+let solveAnim = {
+  active: false,
+  start: 0,
+  durationMs: 1400
+};
+
+let solveRaf = 0;
+
+
 const dragState = {
   pointerId: null,
   active: false,
@@ -123,6 +132,7 @@ function persistBestIfNeeded() {
 }
 
 function resetTimerAndMoves() {
+    stopSolveAnimation();
   if (timerHandle) {
     clearInterval(timerHandle);
     timerHandle = null;
@@ -423,6 +433,7 @@ function shuffleBoard() {
     board[1] = temp;
   }
   lockedTiles.clear();
+  stopSolveAnimation();
   recomputeClusters();
   resetTimerAndMoves();
   draw();
@@ -518,6 +529,22 @@ function drawLockOverlayForTile(index) {
   const tileId = board[index];
   if (!lockedTiles.has(tileId)) return;
 
+    // Fade locks during solve animation
+  let lockAlpha = 1;
+
+  if (solveAnim.active || solved) {
+    const now = performance.now();
+    const t = solveAnim.active
+      ? Math.min(1, (now - solveAnim.start) / solveAnim.durationMs)
+      : 1;
+
+    // fade out during first half of animation
+    lockAlpha = Math.max(0, 1 - t * 2);
+  }
+
+  if (lockAlpha <= 0) return;
+
+
   const col = index % cols;
   const row = Math.floor(index / cols);
   const x = col * tileWidth;
@@ -532,7 +559,7 @@ const pulse = 0.55 + Math.sin(t) * 0.18;
 ctx.shadowColor = `rgba(124, 92, 255, ${pulse})`;
 ctx.shadowBlur = 18;
 ctx.lineWidth = 3;
-ctx.strokeStyle = "rgba(124, 92, 255, 0.92)";
+ctx.strokeStyle = `rgba(124, 92, 255, ${0.92 * lockAlpha})`;
 
 
 // Neighbor checks
@@ -641,13 +668,13 @@ ctx.stroke();
 const lockX = x + 10;
 const lockY = y + 10;
 ctx.lineWidth = 2;
-ctx.strokeStyle = "rgba(236, 242, 255, 0.70)";
+ctx.strokeStyle = `rgba(17, 24, 39, ${0.85 * lockAlpha})`;
 ctx.beginPath();
 ctx.arc(lockX + 7, lockY + 6, 5, Math.PI, 0, false);
 ctx.stroke();
 ctx.strokeRect(lockX + 3, lockY + 6, 8, 8);
 
-ctx.fillStyle = "rgba(86, 204, 242, 0.85)";
+ctx.fillStyle = `rgba(86, 204, 242, ${0.85 * lockAlpha})`;
 ctx.beginPath();
 ctx.arc(lockX + 7, lockY + 11, 1.6, 0, Math.PI * 2);
 ctx.fill();
@@ -655,6 +682,63 @@ ctx.fill();
 ctx.restore();
 
 }
+
+
+function drawSolveOverlay(size) {
+  if (!solved && !solveAnim.active) return;
+
+  const now = performance.now();
+  const t = solveAnim.active
+    ? Math.min(1, (now - solveAnim.start) / solveAnim.durationMs)
+    : 1;
+
+  // Ease out
+  const ease = 1 - Math.pow(1 - t, 3);
+
+  ctx.save();
+
+  // 1) quick white flash at start
+  const flash = Math.max(0, 1 - t * 4);
+  if (flash > 0) {
+    ctx.fillStyle = `rgba(255,255,255,${flash * 0.18})`;
+    ctx.fillRect(0, 0, size, size);
+  }
+
+  // 2) radial energy bloom
+  const cx = size / 2;
+  const cy = size / 2;
+  const r = size * (0.15 + 0.85 * ease);
+
+  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+  grad.addColorStop(0, `rgba(124, 92, 255, ${0.18 * (1 - t)})`);
+  grad.addColorStop(0.55, `rgba(86, 204, 242, ${0.12 * (1 - t)})`);
+  grad.addColorStop(1, "rgba(0,0,0,0)");
+
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, size, size);
+
+  // 3) perimeter sweep glow (animated)
+  const sweep = Math.sin(t * Math.PI); // 0 -> 1 -> 0
+  ctx.shadowColor = `rgba(124, 92, 255, ${0.55 * sweep})`;
+  ctx.shadowBlur = 26;
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = `rgba(124, 92, 255, ${0.35 * sweep})`;
+  ctx.strokeRect(3, 3, size - 6, size - 6);
+
+  // 4) SOLVED text
+  const textA = t < 0.35 ? 0 : Math.min(1, (t - 0.35) / 0.35);
+  ctx.shadowBlur = 18;
+  ctx.shadowColor = `rgba(86, 204, 242, ${0.6 * textA})`;
+  ctx.fillStyle = `rgba(236, 242, 255, ${0.95 * textA})`;
+  ctx.font = `700 ${Math.max(28, Math.floor(size * 0.07))}px Segoe UI`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("SOLVED", cx, cy);
+
+  ctx.restore();
+}
+
+
 
 function draw() {
   const size = canvas.width / dpr;
@@ -693,6 +777,7 @@ function draw() {
   }
 
   drawClusterAwareGrid(size);
+  drawSolveOverlay(size);
 }
 
 function boardIndexFromPoint(x, y) {
@@ -725,6 +810,41 @@ function resetDragState() {
   dragState.offsetsByTileId = new Map();
 }
 
+function stopSolveAnimation() {
+  solveAnim.active = false;
+  if (solveRaf) {
+    cancelAnimationFrame(solveRaf);
+    solveRaf = 0;
+  }
+}
+
+function startSolveAnimation() {
+  solveAnim.active = true;
+  solveAnim.start = performance.now();
+
+  if (solveRaf) cancelAnimationFrame(solveRaf);
+
+  const tick = () => {
+    if (!solveAnim.active) return;
+
+    const t = (performance.now() - solveAnim.start) / solveAnim.durationMs;
+    draw();
+
+    if (t < 1) {
+      solveRaf = requestAnimationFrame(tick);
+    } else {
+      solveAnim.active = false;
+      solveRaf = 0;
+      draw(); // final crisp frame
+    }
+  };
+
+  solveRaf = requestAnimationFrame(tick);
+}
+
+
+
+
 function completeMoveIfNeeded() {
   if (!dragState.active) return;
 
@@ -749,6 +869,7 @@ function completeMoveIfNeeded() {
         timerHandle = null;
       }
       persistBestIfNeeded();
+      startSolveAnimation();
     }
   }
 
