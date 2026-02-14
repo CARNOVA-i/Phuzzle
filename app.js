@@ -94,6 +94,18 @@ const dragState = {
   y: 0
 };
 
+
+
+
+
+function isGracePhoto() {
+  const src = PHOTO_LIST[photoIndex] || "";
+  return src.toLowerCase().includes("/grace_");
+}
+
+
+
+
 function difficultyKey() {
   return `${rows}x${cols}`;
 }
@@ -724,6 +736,46 @@ function drawConfetti(size) {
 }
 
 
+function drawGraceWatermark(size) {
+  if (!isGracePhoto()) return;
+  if (!solved && !(solveAnim && solveAnim.active)) return;
+
+  const now = performance.now();
+  const t = (solveAnim && solveAnim.active)
+    ? Math.min(1, (now - solveAnim.start) / solveAnim.durationMs)
+    : 1;
+
+  // Bring it in smoothly during solve, then keep it
+  const fadeIn = Math.min(1, Math.max(0, (t - 0.35) / 0.35));
+  const alpha = 0.52 * fadeIn; // ghost level
+
+  const pad = Math.max(14, Math.floor(size * 0.02));
+  const x = size - pad;
+  const y = size - pad;
+
+  ctx.save();
+
+  // subtle shadow so it reads on bright or dark photos
+  ctx.shadowColor = `rgba(0,0,0,${0.45 * fadeIn})`;
+  ctx.shadowBlur = 10;
+
+  // Signature line
+  ctx.textAlign = "right";
+  ctx.textBaseline = "bottom";
+  ctx.fillStyle = `rgba(236, 242, 255, ${alpha})`;
+  ctx.font = `700 ${Math.max(18, Math.floor(size * 0.05))}px ui-rounded, "Segoe Script", "Brush Script MT", cursive`;
+  ctx.fillText("Grace Marshall", x, y);
+
+  // Small subtitle
+  ctx.shadowBlur = 6;
+  ctx.fillStyle = `rgba(236, 242, 255, ${alpha * 0.95})`;
+  ctx.font = `600 ${Math.max(10, Math.floor(size * 0.022))}px ui-sans-serif, system-ui, "Segoe UI", sans-serif`;
+  ctx.fillText("PHOTOGRAPHY", x, y - Math.max(18, Math.floor(size * 0.045)));
+
+  ctx.restore();
+}
+
+
 
 function drawSolveOverlay(size) {
   if (!solved && !solveAnim.active) return;
@@ -766,17 +818,61 @@ function drawSolveOverlay(size) {
   ctx.strokeStyle = `rgba(124, 92, 255, ${0.35 * sweep})`;
   ctx.strokeRect(3, 3, size - 6, size - 6);
 
-  // 4) SOLVED text
-  const textA = t < 0.35 ? 0 : Math.min(1, (t - 0.35) / 0.35);
-  ctx.shadowBlur = 18;
-  ctx.shadowColor = `rgba(86, 204, 242, ${0.6 * textA})`;
-  ctx.fillStyle = `rgba(236, 242, 255, ${0.95 * textA})`;
-  ctx.font = `700 ${Math.max(28, Math.floor(size * 0.07))}px Segoe UI`;
+   // 4) SOLVED text (flash + pop + glow)
+  const textIn = t < 0.18 ? 0 : Math.min(1, (t - 0.18) / 0.25); // quicker entry
+  const impact = Math.max(0, 1 - t * 6); // fast flash at start (0..~0.16s)
+
+  // Pop: overshoot then settle
+  const pop = 1 + 0.14 * Math.sin(Math.min(1, t) * Math.PI) * (1 - t);
+
+  // Extra glow pulse tied to impact
+  const glowPulse = 0.35 + 0.65 * impact;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(pop, pop);
+
+  // white flash halo behind text
+  if (impact > 0) {
+    ctx.shadowColor = `rgba(255,255,255,${0.35 * impact})`;
+    ctx.shadowBlur = 26;
+  }
+
+  // main glow
+  ctx.shadowColor = `rgba(86, 204, 242, ${0.75 * glowPulse * textIn})`;
+  ctx.shadowBlur = 22;
+
+  ctx.fillStyle = `rgba(236, 242, 255, ${0.98 * textIn})`;
+  ctx.font = `800 ${Math.max(28, Math.floor(size * 0.075))}px ui-sans-serif, system-ui, "Segoe UI", sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("SOLVED", cx, cy);
+  const blink = impact > 0.65 ? 0.35 : 0;
+  ctx.fillStyle = `rgba(236, 242, 255, ${Math.min(1, 0.98 * textIn + blink)})`;
+
+  // Outer glow stroke
+  ctx.lineWidth = Math.max(3, size * 0.008);
+  ctx.strokeStyle = `rgba(124, 92, 255, ${0.45 * textIn})`;
+  ctx.shadowBlur = 24;
+  ctx.strokeText("SOLVED", 0, 0);
+
+  // Inner crisp accent stroke
+  ctx.lineWidth = Math.max(1.5, size * 0.004);
+  ctx.strokeStyle = `rgba(86, 204, 242, ${0.9 * textIn})`;
+  ctx.shadowBlur = 10;
+  ctx.strokeText("SOLVED", 0, 0);
+
+    // White fill on top (this is the actual readable text)
+  ctx.shadowColor = `rgba(86, 204, 242, ${0.25 * glowPulse * textIn})`;
+  ctx.shadowBlur = 18;
+  ctx.fillStyle = `rgba(236, 242, 255, ${Math.min(1, 0.98 * textIn + blink)})`;
+  ctx.fillText("SOLVED", 0, 0);
+
+  
 
   ctx.restore();
+  ctx.restore();
+
+
 }
 
 
@@ -819,6 +915,7 @@ function draw() {
 
   drawClusterAwareGrid(size);
   drawSolveOverlay(size);
+  drawGraceWatermark(size);
   drawConfetti(size);
 }
 
