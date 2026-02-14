@@ -65,6 +65,7 @@ let confettiParticles = [];
 let confettiActive = false;
 let dpr = Math.max(1, window.devicePixelRatio || 1);
 const lockedTiles = new Set();
+const currentImage = PHOTO_LIST[photoIndex] || "";
 
 let clusterState = {
   rootByTileId: [],
@@ -955,8 +956,8 @@ function draw() {
 
   drawClusterAwareGrid(size);
   drawSolveOverlay(size);
+
   
-  const currentImage = PHOTO_LIST[currentPhotoIndex];
   if (isCarsonPhoto(currentImage)) drawCarsonWatermark(size);
   else drawGraceWatermark(size);
 
