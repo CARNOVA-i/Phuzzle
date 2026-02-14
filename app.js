@@ -61,6 +61,8 @@ let solved = false;
 let startTime = 0;
 let elapsedMs = 0;
 let timerHandle = null;
+let confettiParticles = [];
+let confettiActive = false;
 let dpr = Math.max(1, window.devicePixelRatio || 1);
 const lockedTiles = new Set();
 
@@ -684,6 +686,45 @@ ctx.restore();
 }
 
 
+function drawConfetti(size) {
+  if (!confettiActive) return;
+
+  ctx.save();
+
+  const colors = [
+    "#7c5cff",
+    "#56ccf2",
+    "#86ecf8",
+    "#ffffff"
+  ];
+
+  for (let p of confettiParticles) {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.rotation += p.vr;
+    p.vy += 0.03; // gravity
+    p.life -= 0.01;
+
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rotation);
+    ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
+    ctx.globalAlpha = Math.max(0, p.life);
+    ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+    ctx.restore();
+  }
+
+  ctx.restore();
+
+  confettiParticles = confettiParticles.filter(p => p.life > 0 && p.y < size + 20);
+
+  if (confettiParticles.length === 0) {
+    confettiActive = false;
+  }
+}
+
+
+
 function drawSolveOverlay(size) {
   if (!solved && !solveAnim.active) return;
 
@@ -778,6 +819,7 @@ function draw() {
 
   drawClusterAwareGrid(size);
   drawSolveOverlay(size);
+  drawConfetti(size);
 }
 
 function boardIndexFromPoint(x, y) {
@@ -844,6 +886,28 @@ function startSolveAnimation() {
 
 
 
+function spawnConfetti(size) {
+  confettiParticles = [];
+  confettiActive = true;
+
+  const count = 70;
+
+  for (let i = 0; i < count; i++) {
+    confettiParticles.push({
+      x: Math.random() * size,
+      y: -20 - Math.random() * 40,
+      vx: (Math.random() - 0.5) * 2,
+      vy: 2 + Math.random() * 2.5,
+      size: 4 + Math.random() * 4,
+      rotation: Math.random() * Math.PI,
+      vr: (Math.random() - 0.5) * 0.2,
+      life: 1
+    });
+  }
+}
+
+
+
 
 function completeMoveIfNeeded() {
   if (!dragState.active) return;
@@ -870,6 +934,8 @@ function completeMoveIfNeeded() {
       }
       persistBestIfNeeded();
       startSolveAnimation();
+      spawnConfetti(canvas.width / dpr);
+      if (navigator.vibrate) navigator.vibrate(40);
     }
   }
 
