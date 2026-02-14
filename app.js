@@ -955,11 +955,12 @@ function draw() {
 
   drawClusterAwareGrid(size);
   drawSolveOverlay(size);
-  if (isCarsonPhoto(currentImage)) {
-    drawCarsonWatermark(size);
-  } else {
-    drawGraceWatermark(size);
-  }
+  
+  const currentImage = PHOTO_LIST[currentPhotoIndex];
+  if (isCarsonPhoto(currentImage)) drawCarsonWatermark(size);
+  else drawGraceWatermark(size);
+
+  
 
   drawConfetti(size);
 }
