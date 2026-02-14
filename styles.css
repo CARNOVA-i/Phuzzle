@@ -31,6 +31,7 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -46,7 +47,7 @@ body {
 .app {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 18px;
+  padding: 12px; 
 }
 
 .topbar {
@@ -145,9 +146,10 @@ select:focus-visible {
 
 #puzzleCanvas {
   display: block;
-  width: min(92vw, 820px);
-  height: min(92vw, 820px);
+  width: min(calc(100vw - 24px), 820px);
+  height: min(calc(100vw - 24px), 820px);
   max-height: calc(100vh - 210px);
+  margin: 0 auto;
 
   border-radius: calc(var(--radius) + 6px);
   background: rgba(255, 255, 255, 0.04);
@@ -171,7 +173,9 @@ select:focus-visible {
   }
 
   #puzzleCanvas {
-    width: min(94vw, 760px);
-    height: min(94vw, 760px);
-  }
+  width: min(calc(100vw - 24px), 760px);
+  height: min(calc(100vw - 24px), 760px);
+  margin: 0 auto;
+}
+
 }
