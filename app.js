@@ -103,7 +103,10 @@ function isGracePhoto() {
   return src.toLowerCase().includes("/grace_");
 }
 
-
+function isCarsonPhoto() {
+  const src = PHOTO_LIST[photoIndex] || "";
+  return src.toLowerCase().includes("/carson_");
+}
 
 
 function difficultyKey() {
@@ -776,6 +779,43 @@ function drawGraceWatermark(size) {
 }
 
 
+function drawCarsonWatermark(size) {
+   if (!isCarsonPhoto()) return;
+  if (!solved && !(solveAnim && solveAnim.active)) return;
+
+  const now = performance.now();
+  const t = (solveAnim && solveAnim.active)
+    ? Math.min(1, (now - solveAnim.start) / solveAnim.durationMs)
+    : 1;
+
+  // Bring it in smoothly during solve, then keep it
+  const fadeIn = Math.min(1, Math.max(0, (t - 0.35) / 0.35));
+  const alpha = 0.52 * fadeIn; // ghost level
+
+  const pad = Math.max(14, Math.floor(size * 0.02));
+  const x = size - pad;
+  const y = size - pad;
+
+  ctx.save();
+
+  ctx.textAlign = "right";
+  ctx.textBaseline = "bottom";
+
+  // Small top label
+  ctx.font = `500 ${Math.floor(size * 0.025)}px ui-sans-serif, system-ui`;
+  ctx.fillStyle = "rgba(255,255,255,0.35)";
+  ctx.fillText("PHOTOGRAPHY", x, y - size * 0.03);
+
+  // Signature line
+  ctx.font = `600 ${Math.floor(size * 0.045)}px "Segoe Script", cursive`;
+  ctx.fillStyle = "rgba(255,255,255,0.55)";
+  ctx.fillText("Carson Elliott", x, y);
+
+  ctx.restore();
+}
+
+
+
 
 function drawSolveOverlay(size) {
   if (!solved && !solveAnim.active) return;
@@ -915,7 +955,12 @@ function draw() {
 
   drawClusterAwareGrid(size);
   drawSolveOverlay(size);
-  drawGraceWatermark(size);
+  if (isCarsonPhoto(currentImage)) {
+    drawCarsonWatermark(size);
+  } else {
+    drawGraceWatermark(size);
+  }
+
   drawConfetti(size);
 }
 
