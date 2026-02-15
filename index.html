@@ -8,32 +8,54 @@
 </head>
 <body>
   <main class="app">
-    <header class="topbar" aria-label="Puzzle Controls">
-      <div class="control-row">
-        <button id="prevPhotoBtn" type="button">Prev</button>
-        <button id="nextPhotoBtn" type="button">Next</button>
-        <button id="randomPhotoBtn" type="button">Random Photo</button>
+    <header class="hud" aria-label="Puzzle Controls">
+  <!-- Thin ambient ribbon -->
+  <div class="ribbon">
+  <div class="ribbon-left">
+    <button id="prevPhotoBtn" type="button" class="icon-btn" aria-label="Previous photo">◀</button>
+    <button id="nextPhotoBtn" type="button" class="icon-btn" aria-label="Next photo">▶</button>
+    <button id="randomPhotoBtn" type="button" class="pill-btn" aria-label="Random photo">Random</button>
+  </div>
+
+  <div class="ribbon-right">
+    <div class="difficulty">
+      <button id="difficultyBtn" class="pill-btn" aria-expanded="false">4x4</button>
+      <div id="difficultyMenu" class="difficulty-menu">
+        <button type="button" data-size="3x3">3x3</button>
+        <button type="button" data-size="4x4">4x4</button>
+        <button type="button" data-size="5x5">5x5</button>
+        <button type="button" data-size="6x6">6x6</button>
       </div>
-      <div class="control-row">
-        <label for="difficultySelect">Difficulty</label>
-        <select id="difficultySelect">
-          <option value="3x3">3x3</option>
-          <option value="4x4" selected>4x4</option>
-          <option value="5x5">5x5</option>
-          <option value="6x6">6x6</option>
-        </select>
-        <button id="shuffleBtn" type="button">Shuffle</button>
-        <button id="pauseBtn" type="button">Pause</button>
-      </div>
-      <div class="stats" aria-live="polite">
-        <span id="movesLabel">Moves: 0</span>
-        <span id="timerLabel">Time: 00:00</span>
-        <span id="bestLabel">Best: --:--</span>
-      </div>
-    </header>
+    </div>
+  </div>
+</div>
+
+
+  <!-- Etched stats (below ribbon, still above board) -->
+  <div class="etched-stats" aria-live="polite">
+    <span id="movesLabel">Moves: 0</span>
+    <span class="dot">•</span>
+    <span id="timerLabel">Time: 00:00</span>
+    <span class="dot">•</span>
+    <span id="bestLabel">Best: --:--</span>
+  </div>
+
+</header>
+
 
     <section class="board-wrap">
       <canvas id="puzzleCanvas" aria-label="Puzzle board"></canvas>
+      <!-- Hover sculpture controls -->
+      <div class="orb-wrap" aria-label="Quick controls">
+        <button id="orbBtn" type="button" class="orb" aria-label="Open controls" aria-expanded="false">
+          ●
+        </button>
+
+        <div id="orbMenu" class="orb-menu" role="menu" aria-label="Controls">
+          <button id="shuffleBtn" type="button" class="orb-action" role="menuitem">Shuffle</button>
+          <button id="pauseBtn" type="button" class="orb-action" role="menuitem">Pause</button>
+        </div>
+      </div>
     </section>
   </main>
 

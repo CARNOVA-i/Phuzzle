@@ -39,12 +39,16 @@ const ctx = canvas.getContext("2d");
 const prevPhotoBtn = document.getElementById("prevPhotoBtn");
 const nextPhotoBtn = document.getElementById("nextPhotoBtn");
 const randomPhotoBtn = document.getElementById("randomPhotoBtn");
-const difficultySelect = document.getElementById("difficultySelect");
+const difficultyBtn = document.getElementById("difficultyBtn");
+const difficultyMenu = document.getElementById("difficultyMenu");
 const shuffleBtn = document.getElementById("shuffleBtn");
 const pauseBtn = document.getElementById("pauseBtn");
 const movesLabel = document.getElementById("movesLabel");
 const timerLabel = document.getElementById("timerLabel");
 const bestLabel = document.getElementById("bestLabel");
+const orbBtn = document.getElementById("orbBtn");
+const orbMenu = document.getElementById("orbMenu");
+
 
 let photoIndex = 0;
 let rows = 4;
@@ -65,7 +69,11 @@ let confettiParticles = [];
 let confettiActive = false;
 let dpr = Math.max(1, window.devicePixelRatio || 1);
 const lockedTiles = new Set();
-const currentImage = PHOTO_LIST[photoIndex] || "";
+
+function currentImageSrc() {
+  return PHOTO_LIST[photoIndex] || "";
+}
+
 
 let clusterState = {
   rootByTileId: [],
@@ -97,6 +105,67 @@ const dragState = {
 
 
 
+function toggleDifficulty(open) {
+  const isOpen = open ?? difficultyBtn.getAttribute("aria-expanded") !== "true";
+  difficultyBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  difficultyMenu.classList.toggle("open", isOpen);
+}
+
+difficultyBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  toggleDifficulty();
+});
+
+difficultyMenu.addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-size]");
+  if (!btn) return;
+
+  const size = btn.dataset.size;
+
+  console.log("difficulty picked:", size);
+
+
+  difficultyBtn.textContent = size;
+  applyDifficulty(size);
+  toggleDifficulty(false);
+});
+
+
+document.addEventListener("pointerdown", (e) => {
+  if (!difficultyMenu.contains(e.target) &&
+      !difficultyBtn.contains(e.target)) {
+    toggleDifficulty(false);
+  }
+});
+
+
+
+function setOrbOpen(open) {
+  if (!orbBtn || !orbMenu) return;
+  orbBtn.setAttribute("aria-expanded", open ? "true" : "false");
+  orbMenu.classList.toggle("open", open);
+}
+
+function toggleOrb() {
+  const isOpen = orbBtn?.getAttribute("aria-expanded") === "true";
+  setOrbOpen(!isOpen);
+}
+
+orbBtn?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  toggleOrb();
+});
+
+document.addEventListener("pointerdown", (e) => {
+  if (!orbMenu || !orbBtn) return;
+  const inside = orbMenu.contains(e.target) || orbBtn.contains(e.target);
+  if (!inside) setOrbOpen(false);
+});
+
+orbMenu?.addEventListener("click", () => {
+  // close after action tap
+  setOrbOpen(false);
+});
 
 
 function isGracePhoto() {
@@ -185,6 +254,22 @@ function pauseResumeTimer() {
   pauseBtn.textContent = "Pause";
   startTime = Date.now() - elapsedMs;
 }
+
+function applyDifficulty(size) {
+  setDifficulty(size);
+  resizeCanvas();
+
+  if (imageLoaded) {
+    shuffleBoard();
+  } else {
+    loadCurrentPhotoAndShuffle();
+  }
+
+  updateBestLabel();
+}
+
+
+
 
 function setDifficulty(value) {
   const pick = DIFFICULTIES[value] || DIFFICULTIES["4x4"];
@@ -958,8 +1043,9 @@ function draw() {
   drawSolveOverlay(size);
 
   
-  if (isCarsonPhoto(currentImage)) drawCarsonWatermark(size);
-  else drawGraceWatermark(size);
+  if (isCarsonPhoto()) drawCarsonWatermark(size);
+else drawGraceWatermark(size);
+
 
   
 
@@ -1095,11 +1181,25 @@ function beginDrag(e) {
   const startIndex = boardIndexFromPoint(point.x, point.y);
   if (startIndex < 0) return;
 
+  const draggedTileId = board[startIndex];
   const cluster = getClusterFromIndex(startIndex);
   if (clusterHasLockedTile(cluster.members)) return;
 
-  e.preventDefault();                 // only once we commit to drag
+  e.preventDefault();
   canvas.setPointerCapture(e.pointerId);
+
+  const tileIndexById = buildTileIndexMap();
+  const anchorCell = indexToRowCol(startIndex);
+  const offsetsByTileId = new Map();
+
+  for (const tileId of cluster.members) {
+    const index = tileIndexById[tileId];
+    const cell = indexToRowCol(index);
+    offsetsByTileId.set(tileId, {
+      dRow: cell.row - anchorCell.row,
+      dCol: cell.col - anchorCell.col
+    });
+  }
 
   dragState.pointerId = e.pointerId;
   dragState.active = true;
@@ -1113,20 +1213,9 @@ function beginDrag(e) {
   dragState.x = point.x;
   dragState.y = point.y;
 
-  const tileIndexById = buildTileIndexMap();
-  const anchorCell = indexToRowCol(startIndex);
-  const offsetsByTileId = new Map();
-  for (const tileId of cluster.members) {
-    const index = tileIndexById[tileId];
-    const cell = indexToRowCol(index);
-    offsetsByTileId.set(tileId, {
-      dRow: cell.row - anchorCell.row,
-      dCol: cell.col - anchorCell.col
-    });
-  }
-
   draw();
 }
+
 
 function moveDrag(e) {
   if (!dragState.active || dragState.pointerId !== e.pointerId) return;
@@ -1193,23 +1282,14 @@ function randomPhoto() {
   loadCurrentPhotoAndShuffle();
 }
 
-function onDifficultyChange() {
-  setDifficulty(difficultySelect.value);
-  resizeCanvas();
-  if (imageLoaded) {
-    shuffleBoard();
-  } else {
-    loadCurrentPhotoAndShuffle();
-  }
-  updateBestLabel();
-}
+
 
 prevPhotoBtn.addEventListener("click", () => stepPhoto(-1));
 nextPhotoBtn.addEventListener("click", () => stepPhoto(1));
 randomPhotoBtn.addEventListener("click", randomPhoto);
 shuffleBtn.addEventListener("click", shuffleBoard);
 pauseBtn.addEventListener("click", pauseResumeTimer);
-difficultySelect.addEventListener("change", onDifficultyChange);
+
 
 canvas.addEventListener("pointerdown", beginDrag);
 canvas.addEventListener("pointermove", moveDrag);
@@ -1219,7 +1299,7 @@ canvas.addEventListener("lostpointercapture", cancelDrag);
 
 window.addEventListener("resize", resizeCanvas);
 
-setDifficulty(difficultySelect.value);
+applyDifficulty(difficultyBtn?.textContent?.trim() || "4x4");
 updateStats();
 updateBestLabel();
 loadCurrentPhotoAndShuffle();
