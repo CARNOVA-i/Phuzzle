@@ -144,6 +144,14 @@ select:focus-visible {
   place-items: center;
 }
 
+canvas {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+
 #puzzleCanvas {
   display: block;
   width: min(calc(100vw - 24px), 820px);

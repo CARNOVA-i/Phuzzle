@@ -1090,25 +1090,16 @@ function completeMoveIfNeeded() {
 
 function beginDrag(e) {
   if (!imageLoaded || solved || isPaused) return;
+
   const point = clientToCanvasPoint(e.clientX, e.clientY);
   const startIndex = boardIndexFromPoint(point.x, point.y);
   if (startIndex < 0) return;
 
-  const draggedTileId = board[startIndex];
   const cluster = getClusterFromIndex(startIndex);
   if (clusterHasLockedTile(cluster.members)) return;
 
-  const tileIndexById = buildTileIndexMap();
-  const anchorCell = indexToRowCol(startIndex);
-  const offsetsByTileId = new Map();
-  for (const tileId of cluster.members) {
-    const index = tileIndexById[tileId];
-    const cell = indexToRowCol(index);
-    offsetsByTileId.set(tileId, {
-      dRow: cell.row - anchorCell.row,
-      dCol: cell.col - anchorCell.col
-    });
-  }
+  e.preventDefault();                 // only once we commit to drag
+  canvas.setPointerCapture(e.pointerId);
 
   dragState.pointerId = e.pointerId;
   dragState.active = true;
@@ -1122,7 +1113,18 @@ function beginDrag(e) {
   dragState.x = point.x;
   dragState.y = point.y;
 
-  canvas.setPointerCapture(e.pointerId);
+  const tileIndexById = buildTileIndexMap();
+  const anchorCell = indexToRowCol(startIndex);
+  const offsetsByTileId = new Map();
+  for (const tileId of cluster.members) {
+    const index = tileIndexById[tileId];
+    const cell = indexToRowCol(index);
+    offsetsByTileId.set(tileId, {
+      dRow: cell.row - anchorCell.row,
+      dCol: cell.col - anchorCell.col
+    });
+  }
+
   draw();
 }
 
@@ -1137,19 +1139,22 @@ function moveDrag(e) {
 
 function endDrag(e) {
   if (!dragState.active || dragState.pointerId !== e.pointerId) return;
-  if (canvas.hasPointerCapture(e.pointerId)) {
+
+  if (canvas.hasPointerCapture?.(e.pointerId)) {
     canvas.releasePointerCapture(e.pointerId);
   }
+
   completeMoveIfNeeded();
 }
 
 function cancelDrag(e) {
-  if (!dragState.active || dragState.pointerId !== e.pointerId) return;
-  if (canvas.hasPointerCapture(e.pointerId)) {
-    canvas.releasePointerCapture(e.pointerId);
+  if (dragState.active && dragState.pointerId === e.pointerId) {
+    if (canvas.hasPointerCapture?.(e.pointerId)) {
+      canvas.releasePointerCapture(e.pointerId);
+    }
+    resetDragState();
+    draw();
   }
-  resetDragState();
-  draw();
 }
 
 function loadCurrentPhotoAndShuffle() {
