@@ -42,6 +42,13 @@ const COLLECTIONS = {
   animals: [
     "assets/images/animals/grace_02.jpg",
     "assets/images/animals/carson_A1.jpg"
+  ],
+
+  highvis: [
+    "assets/images/highvis/carson_HV1.jpg",
+    "assets/images/highvis/carson_HV2.jpg",
+    "assets/images/highvis/carson_HV3.jpg",
+    "assets/images/highvis/carson_HV4.jpg"
   ]
 };
 
@@ -52,8 +59,13 @@ COLLECTIONS.all = Object.values(COLLECTIONS)
   .flat();
 
 function getActivePhotoList() {
+  if (lowVisionMode && COLLECTIONS.highvis) {
+    return COLLECTIONS.highvis;
+  }
+
   return COLLECTIONS[currentCollection] || COLLECTIONS.all;
 }
+
 
 function currentImageSrc() {
   const list = getActivePhotoList();
@@ -84,7 +96,16 @@ const orbBtn = document.getElementById("orbBtn");
 const orbMenu = document.getElementById("orbMenu");
 const collectionBtn = document.getElementById("collectionBtn");
 const collectionMenu = document.getElementById("collectionMenu");
+const lvBtn = document.getElementById("lvBtn");
+const toneBtn = document.getElementById("toneBtn");
+const vibeBtn = document.getElementById("vibeBtn");
 
+
+let previousCollection = null;
+
+let lowVisionMode = false;
+let toneEnabled = false;
+let vibeEnabled = false;
 
 
 let photoIndex = 0;
@@ -106,6 +127,8 @@ let confettiParticles = [];
 let confettiActive = false;
 let dpr = Math.max(1, window.devicePixelRatio || 1);
 const lockedTiles = new Set();
+
+
 
 
 
@@ -575,6 +598,19 @@ function tryRigidTranslateSwap(draggedTileId, dropCellIndex) {
   return true;
 }
 
+function computeOffGrid01(x, y, cellW, cellH){
+  // x,y are piece center in canvas coordinates
+  const fx = (x / cellW) - Math.floor(x / cellW); // 0..1
+  const fy = (y / cellH) - Math.floor(y / cellH);
+
+  // distance from cell center (0.5,0.5), max at edges
+  const dx = Math.abs(fx - 0.5) / 0.5; // 0..1
+  const dy = Math.abs(fy - 0.5) / 0.5;
+
+  // combine; keep it simple and obvious
+  return Math.max(dx, dy);
+}
+
 
 function lockCorrectTilesNow() {
   for (let index = 0; index < board.length; index += 1) {
@@ -644,7 +680,8 @@ function drawTileAt(tileId, dx, dy, alpha = 1) {
 
 function drawClusterAwareGrid(size) {
   ctx.save();
-  ctx.lineWidth = 1;
+  ctx.lineWidth = lowVisionMode ? 4 : 1;
+
 
   for (let row = 0; row < rows; row += 1) {
     for (let col = 0; col < cols - 1; col += 1) {
@@ -655,7 +692,10 @@ function drawClusterAwareGrid(size) {
       const sameCluster =
         clusterState.rootByTileId[leftTile] !== undefined &&
         clusterState.rootByTileId[leftTile] === clusterState.rootByTileId[rightTile];
-      ctx.strokeStyle = sameCluster ? "rgba(0,0,0,0.06)" : "rgba(0,0,0,0.24)";
+      ctx.strokeStyle = lowVisionMode
+        ? (sameCluster ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.72)")
+        : (sameCluster ? "rgba(0,0,0,0.06)" : "rgba(0,0,0,0.24)");
+
       const x = (col + 1) * tileWidth;
       const y1 = row * tileHeight;
       const y2 = y1 + tileHeight;
@@ -675,7 +715,10 @@ function drawClusterAwareGrid(size) {
       const sameCluster =
         clusterState.rootByTileId[topTile] !== undefined &&
         clusterState.rootByTileId[topTile] === clusterState.rootByTileId[bottomTile];
-      ctx.strokeStyle = sameCluster ? "rgba(0,0,0,0.06)" : "rgba(0,0,0,0.24)";
+      ctx.strokeStyle = lowVisionMode
+        ? (sameCluster ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.72)")
+        : (sameCluster ? "rgba(0,0,0,0.06)" : "rgba(0,0,0,0.24)");
+
       const y = (row + 1) * tileHeight;
       const x1 = col * tileWidth;
       const x2 = x1 + tileWidth;
@@ -686,8 +729,9 @@ function drawClusterAwareGrid(size) {
     }
   }
 
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = "rgba(0,0,0,0.45)";
+  ctx.lineWidth = lowVisionMode ? 8 : 2;
+  ctx.strokeStyle = lowVisionMode ? "rgba(255,255,255,0.90)" : "rgba(0,0,0,0.45)";
+
   ctx.strokeRect(0, 0, size, size);
   ctx.restore();
 }
@@ -1219,6 +1263,9 @@ function completeMoveIfNeeded() {
       elapsedMs = Date.now() - startTime;
     }
     lockCorrectTilesNow();
+    if (toneEnabled) proxTone.chirpSuccess();
+    if (vibeEnabled) proxVibe.buzzSuccess();
+
     recomputeClusters();
     if (isSolved()) {
       solved = true;
@@ -1228,6 +1275,7 @@ function completeMoveIfNeeded() {
       }
       persistBestIfNeeded();
       startSolveAnimation();
+      proxTone.victoryChime();
       spawnConfetti(canvas.width / dpr);
       if (navigator.vibrate) navigator.vibrate(40);
     }
@@ -1237,6 +1285,211 @@ function completeMoveIfNeeded() {
   updateStats();
   draw();
 }
+
+
+// section for proximity tone and vibe feedback during drag.... For low vision accessibility
+
+function clamp01(x){ return Math.max(0, Math.min(1, x)); }
+
+class ProximityTone {
+  constructor(){
+    this.ctx = null;
+    this.osc = null;
+    this.gain = null;
+    this.active = false;
+    this.hOsc = null;
+    this.hGain = null;
+
+  }
+  start(){
+    if (this.active) return;
+    if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (this.ctx.state === "suspended") this.ctx.resume();
+
+    this.osc = this.ctx.createOscillator();
+    this.gain = this.ctx.createGain();
+
+    this.osc.type = "sine";
+    this.gain.gain.value = 0.0001;
+
+    this.osc.connect(this.gain);
+    this.gain.connect(this.ctx.destination);
+
+    this.osc.frequency.value = 180;
+    this.osc.start();
+
+    const t = this.ctx.currentTime;
+    this.gain.gain.setTargetAtTime(0.05, t, 0.02);
+
+    this.active = true;
+
+        // Harmonic layer for off-grid roughness
+    this.hOsc = this.ctx.createOscillator();
+    this.hGain = this.ctx.createGain();
+
+    this.hOsc.type = "square";       // harsh overtone
+    this.hGain.gain.value = 0.0001;  // basically off
+
+    this.hOsc.connect(this.hGain);
+    this.hGain.connect(this.ctx.destination);
+
+    this.hOsc.frequency.value = this.osc.frequency.value * 2;
+    this.hOsc.start();
+
+  }
+  update(closeness, offGrid01){
+    if (!this.active) return;
+
+    const c = Math.max(0, Math.min(1, closeness));
+    const eased = c * c;
+
+    const minHz = 180;
+    const maxHz = 1200;
+    const hz = minHz + (maxHz - minHz) * eased;
+
+    const t = this.ctx.currentTime;
+    this.osc.frequency.setTargetAtTime(hz, t, 0.03);
+
+    // off-grid roughness control
+    const og = Math.max(0, Math.min(1, offGrid01 || 0));
+    const ogEased = og * og;
+
+    // harmonic frequency tracks main pitch
+    if (this.hOsc) this.hOsc.frequency.setTargetAtTime(hz * 2, t, 0.03);
+
+    // fade in roughness as you go off grid
+    // keep this subtle: 0.00 to 0.035 ish
+    if (this.hGain) this.hGain.gain.setTargetAtTime(0.0001 + 0.035 * ogEased, t, 0.03);
+  }
+
+  stop(){
+    if (!this.active) return;
+    const t = this.ctx.currentTime;
+    this.gain.gain.setTargetAtTime(0.0001, t, 0.03);
+    setTimeout(() => {
+      try { this.osc.stop(); } catch {}
+      try { this.osc.disconnect(); } catch {}
+      try { this.gain.disconnect(); } catch {}
+      try { this.hOsc.stop(); } catch {}
+      try { this.hOsc.disconnect(); } catch {}
+      try { this.hGain.disconnect(); } catch {}
+      this.osc = null;
+      this.gain = null;
+      this.active = false;
+      this.hOsc = null;
+      this.hGain = null;  
+    }, 120);
+  }
+  chirpSuccess(){
+    if (!this.ctx) return;
+    const o = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    o.type = "square";
+    o.connect(g);
+    g.connect(this.ctx.destination);
+
+    const t = this.ctx.currentTime;
+    g.gain.setValueAtTime(0.06, t);
+    o.frequency.setValueAtTime(1400, t);
+    o.frequency.exponentialRampToValueAtTime(700, t + 0.08);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+
+    o.start(t);
+    o.stop(t + 0.09);
+  }
+
+    victoryChime(){
+    if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (this.ctx.state === "suspended") this.ctx.resume();
+
+    const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
+    const now = this.ctx.currentTime;
+
+    const o = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+
+    o.type = "triangle";
+    o.connect(g);
+    g.connect(this.ctx.destination);
+
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.setTargetAtTime(0.08, now, 0.01);
+
+    const step = 0.11;
+
+    notes.forEach((hz, i) => {
+      o.frequency.setValueAtTime(hz, now + i * step);
+    });
+
+    const end = now + notes.length * step + 0.03;
+    g.gain.setTargetAtTime(0.0001, end, 0.02);
+
+    o.start(now);
+    o.stop(end + 0.08);
+  }
+
+}
+
+
+class ProximityVibe {
+  constructor(){
+    this.timer = null;
+    this.lastInterval = null;
+  }
+  update(closeness){
+    if (!("vibrate" in navigator)) return;
+    const c = clamp01(closeness);
+    const interval = Math.round(500 - (500 - 80) * (c * c));
+    const pulse = Math.round(30 + 70 * c);
+
+    if (this.lastInterval !== null && Math.abs(interval - this.lastInterval) < 25) return;
+    this.lastInterval = interval;
+
+    if (this.timer) clearInterval(this.timer);
+    this.timer = setInterval(() => navigator.vibrate(pulse), interval);
+  }
+  stop(){
+    if (this.timer) clearInterval(this.timer);
+    this.timer = null;
+    this.lastInterval = null;
+    if ("vibrate" in navigator) navigator.vibrate(0);
+  }
+  buzzSuccess(){
+    if ("vibrate" in navigator) navigator.vibrate([40, 30, 120]);
+  }
+}
+
+const proxTone = new ProximityTone();
+const proxVibe = new ProximityVibe();
+
+function tileHomeCenter(tileId){
+  const home = indexToRowCol(tileId); // tileId equals its solved index already
+  return {
+    x: (home.col + 0.5) * tileWidth,
+    y: (home.row + 0.5) * tileHeight
+  };
+}
+
+function dragAnchorCenter(){
+  // dragged tile render center is dragState.x/y already in canvas space
+  return { x: dragState.x, y: dragState.y };
+}
+
+function computeDragCloseness(){
+  const tileId = dragState.draggedTileId;
+  if (tileId < 0) return 0;
+
+  const a = dragAnchorCenter();
+  const h = tileHomeCenter(tileId);
+
+  const d = Math.hypot(a.x - h.x, a.y - h.y);
+  const size = canvas.width / dpr;
+  const d0 = Math.hypot(size, size);
+
+  return 1 - clamp01(d / d0);
+}
+
+
 
 function beginDrag(e) {
   if (!imageLoaded || solved || isPaused) return;
@@ -1277,6 +1530,10 @@ function beginDrag(e) {
   dragState.x = point.x;
   dragState.y = point.y;
 
+  if (toneEnabled) proxTone.start();
+  if (vibeEnabled) proxVibe.update(computeDragCloseness());
+
+
   draw();
 }
 
@@ -1287,6 +1544,13 @@ function moveDrag(e) {
   dragState.x = point.x;
   dragState.y = point.y;
   dragState.targetIndex = boardIndexFromPoint(point.x, point.y);
+  const c = computeDragCloseness();
+  const og = computeOffGrid01(dragState.x, dragState.y, tileWidth, tileHeight);
+
+  if (toneEnabled) proxTone.update(c, og);
+
+  if (vibeEnabled) proxVibe.update(c);
+
   draw();
 }
 
@@ -1297,6 +1561,10 @@ function endDrag(e) {
     canvas.releasePointerCapture(e.pointerId);
   }
 
+  if (toneEnabled) proxTone.stop();
+  if (vibeEnabled) proxVibe.stop();
+
+
   completeMoveIfNeeded();
 }
 
@@ -1305,6 +1573,9 @@ function cancelDrag(e) {
     if (canvas.hasPointerCapture?.(e.pointerId)) {
       canvas.releasePointerCapture(e.pointerId);
     }
+    if (toneEnabled) proxTone.stop();
+    if (vibeEnabled) proxVibe.stop();
+
     resetDragState();
     draw();
   }
@@ -1354,6 +1625,46 @@ function randomPhoto() {
   loadCurrentPhotoAndShuffle();
 }
 
+function setPressed(btn, on, labelOn, labelOff){
+  if (!btn) return;
+  btn.setAttribute("aria-pressed", on ? "true" : "false");
+  btn.textContent = on ? labelOn : labelOff;
+}
+
+lvBtn?.addEventListener("click", () => {
+  lowVisionMode = !lowVisionMode;
+
+  document.body.classList.toggle("lv", lowVisionMode);
+  setPressed(lvBtn, lowVisionMode, "Low Vision: On", "Low Vision: Off");
+
+  if (lowVisionMode) {
+    // Save current collection
+    previousCollection = currentCollectionKey;
+
+    // Force highvis collection
+    currentCollectionKey = "highvis";
+  } else {
+    // Restore previous collection
+    if (previousCollection) {
+      currentCollectionKey = previousCollection;
+    }
+  }
+
+  loadRandomImageFromCollection();
+});
+
+
+toneBtn?.addEventListener("click", () => {
+  toneEnabled = !toneEnabled;
+  setPressed(toneBtn, toneEnabled, "Tone: On", "Tone: Off");
+  if (!toneEnabled) proxTone.stop();
+});
+
+vibeBtn?.addEventListener("click", () => {
+  vibeEnabled = !vibeEnabled;
+  setPressed(vibeBtn, vibeEnabled, "Vibe: On", "Vibe: Off");
+  if (!vibeEnabled) proxVibe.stop();
+});
 
 
 prevPhotoBtn.addEventListener("click", () => stepPhoto(-1));

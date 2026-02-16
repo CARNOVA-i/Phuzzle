@@ -45,6 +45,20 @@
 
   <!-- Etched stats (below ribbon, still above board) -->
   <div class="etched-stats" aria-live="polite">
+    <div class="a11y-row" aria-label="Accessibility controls">
+      <button id="lvBtn" type="button" class="pill-btn" aria-pressed="false">
+        Low Vision: Off
+      </button>
+
+      <button id="toneBtn" type="button" class="pill-btn" aria-pressed="false">
+        Tone: Off
+      </button>
+
+      <button id="vibeBtn" type="button" class="pill-btn" aria-pressed="false">
+        Vibe: Off
+      </button>
+    </div>
+
     <span id="movesLabel">Moves: 0</span>
     <span class="dot">•</span>
     <span id="timerLabel">Time: 00:00</span>
