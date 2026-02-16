@@ -588,7 +588,7 @@ canvas {
 
   /* Make the center collection block take full row so it never gets chopped */
   .collection{
-    width: 100%;
+    width: auto;
     display: flex;
     justify-content: center;
   }
