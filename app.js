@@ -1,30 +1,64 @@
-const PHOTO_LIST = [
-  // Carson
-  "assets/images/carson_01.jpg",
-  "assets/images/carson_02.jpg",
-  "assets/images/carson_03.jpg",
-  "assets/images/carson_04.jpg",
-  "assets/images/carson_07.jpg",
-  "assets/images/carson_08.jpg",
-  "assets/images/carson_09.jpg",
-  "assets/images/carson_10.jpg",
-  "assets/images/carson_11.jpg",
-  "assets/images/carson_12.jpg",
-  "assets/images/carson_13.jpg",
-  "assets/images/carson_14.jpg",
 
-  // Grace
-  "assets/images/grace_01.jpg",
-  "assets/images/grace_02.jpg",
-  "assets/images/grace_03.jpg",
-  "assets/images/grace_04.jpg",
-  "assets/images/grace_05.jpg",
-  "assets/images/grace_06.jpg",
-  "assets/images/grace_07.jpg",
-  "assets/images/grace_08.jpg",
-  "assets/images/grace_09.jpg",
-  "assets/images/grace_10.jpg"
-];
+
+
+
+let currentCollection = "all";
+
+const COLLECTIONS = {
+  nature: [
+    "assets/images/nature/carson_01.jpg",
+    "assets/images/nature/carson_02.jpg",
+    "assets/images/nature/carson_03.jpg",
+    "assets/images/nature/carson_04.jpg",
+    "assets/images/nature/carson_08.jpg",
+    "assets/images/nature/carson_09.jpg",
+    "assets/images/nature/carson_10.jpg",
+    "assets/images/nature/carson_12.jpg",
+    "assets/images/nature/carson_13.jpg",
+    "assets/images/nature/carson_14.jpg",
+    "assets/images/nature/grace_08.jpg",
+    "assets/images/nature/carson_N1.jpg",
+    "assets/images/nature/carson_N2.jpg",
+    "assets/images/nature/carson_N3.jpg"
+
+  ],
+
+  buildings: [
+    "assets/images/buildings/carson_07.jpg",
+    "assets/images/buildings/carson_11.jpg"
+  ],
+
+  detail: [
+    "assets/images/detail/grace_01.jpg",
+    "assets/images/detail/grace_03.jpg",
+    "assets/images/detail/grace_04.jpg",
+    "assets/images/detail/grace_05.jpg",
+    "assets/images/detail/grace_06.jpg",
+    "assets/images/detail/grace_07.jpg",
+    "assets/images/detail/grace_09.jpg",
+    "assets/images/detail/grace_10.jpg"
+  ],
+
+  animals: [
+    "assets/images/animals/grace_02.jpg",
+    "assets/images/animals/carson_A1.jpg"
+  ]
+};
+
+
+  // auto-generate "all"
+COLLECTIONS.all = Object.values(COLLECTIONS)
+  .filter(Array.isArray)
+  .flat();
+
+function getActivePhotoList() {
+  return COLLECTIONS[currentCollection] || COLLECTIONS.all;
+}
+
+function currentImageSrc() {
+  const list = getActivePhotoList();
+  return list[photoIndex] || "";
+}
 
 
 const DIFFICULTIES = {
@@ -48,6 +82,9 @@ const timerLabel = document.getElementById("timerLabel");
 const bestLabel = document.getElementById("bestLabel");
 const orbBtn = document.getElementById("orbBtn");
 const orbMenu = document.getElementById("orbMenu");
+const collectionBtn = document.getElementById("collectionBtn");
+const collectionMenu = document.getElementById("collectionMenu");
+
 
 
 let photoIndex = 0;
@@ -70,9 +107,7 @@ let confettiActive = false;
 let dpr = Math.max(1, window.devicePixelRatio || 1);
 const lockedTiles = new Set();
 
-function currentImageSrc() {
-  return PHOTO_LIST[photoIndex] || "";
-}
+
 
 
 let clusterState = {
@@ -169,14 +204,17 @@ orbMenu?.addEventListener("click", () => {
 
 
 function isGracePhoto() {
-  const src = PHOTO_LIST[photoIndex] || "";
+  const list = getActivePhotoList();
+  const src = list[photoIndex] || "";
   return src.toLowerCase().includes("/grace_");
 }
 
 function isCarsonPhoto() {
-  const src = PHOTO_LIST[photoIndex] || "";
+  const list = getActivePhotoList();
+  const src = list[photoIndex] || "";
   return src.toLowerCase().includes("/carson_");
 }
+
 
 
 function difficultyKey() {
@@ -268,6 +306,32 @@ function applyDifficulty(size) {
   updateBestLabel();
 }
 
+function toggleCollection(forceOpen) {
+  const isOpen = collectionMenu.classList.contains("open");
+  const next = typeof forceOpen === "boolean" ? forceOpen : !isOpen;
+  collectionMenu.classList.toggle("open", next);
+  collectionBtn.setAttribute("aria-expanded", String(next));
+}
+
+collectionBtn.addEventListener("click", () => toggleCollection());
+collectionMenu.addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-collection]");
+  if (!btn) return;
+
+  currentCollection = btn.dataset.collection;
+  collectionBtn.textContent = `Collection: ${btn.textContent}`;
+
+  photoIndex = 0;
+  toggleCollection(false);
+  loadCurrentPhotoAndShuffle();
+});
+
+// close if you click elsewhere
+document.addEventListener("click", (e) => {
+  if (!collectionMenu.classList.contains("open")) return;
+  if (collectionBtn.contains(e.target) || collectionMenu.contains(e.target)) return;
+  toggleCollection(false);
+});
 
 
 
@@ -1249,7 +1313,13 @@ function cancelDrag(e) {
 function loadCurrentPhotoAndShuffle() {
   imageLoaded = false;
   draw();
-  const src = PHOTO_LIST[photoIndex];
+
+  const list = getActivePhotoList();
+  if (!list.length) return;
+
+  photoIndex = ((photoIndex % list.length) + list.length) % list.length;
+  const src = list[photoIndex];
+
   image = new Image();
   image.onload = () => {
     imageLoaded = true;
@@ -1265,19 +1335,21 @@ function loadCurrentPhotoAndShuffle() {
 }
 
 function stepPhoto(delta) {
-  if (!PHOTO_LIST.length) return;
-  const total = PHOTO_LIST.length;
+  const list = getActivePhotoList();
+  if (!list.length) return;
+  const total = list.length;
   photoIndex = (photoIndex + delta + total) % total;
   loadCurrentPhotoAndShuffle();
 }
 
 function randomPhoto() {
-  if (PHOTO_LIST.length <= 1) {
+  const list = getActivePhotoList();
+  if (list.length <= 1) {
     loadCurrentPhotoAndShuffle();
     return;
   }
-  let next = randomInt(PHOTO_LIST.length);
-  while (next === photoIndex) next = randomInt(PHOTO_LIST.length);
+  let next = randomInt(list.length);
+  while (next === photoIndex) next = randomInt(list.length);
   photoIndex = next;
   loadCurrentPhotoAndShuffle();
 }

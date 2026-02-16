@@ -16,15 +16,27 @@
     <button id="nextPhotoBtn" type="button" class="icon-btn" aria-label="Next photo">▶</button>
     <button id="randomPhotoBtn" type="button" class="pill-btn" aria-label="Random photo">Random</button>
   </div>
+    <div class="collection">
+    <button id="collectionBtn" type="button" class="pill-btn" aria-expanded="false">
+      Collection
+    </button>
+
+    <div id="collectionMenu" class="dropdown-menu glass-panel">
+      <button type="button" data-collection="nature" class="orb-action" role="menuitem">Nature</button>
+      <button type="button" data-collection="buildings" class="orb-action" role="menuitem">Buildings</button>
+      <button type="button" data-collection="detail" class="orb-action" role="menuitem">Detail</button>
+      <button type="button" data-collection="animals" class="orb-action" role="menuitem">Animals</button>
+    </div>
+  </div>
 
   <div class="ribbon-right">
     <div class="difficulty">
       <button id="difficultyBtn" class="pill-btn" aria-expanded="false">4x4</button>
-      <div id="difficultyMenu" class="difficulty-menu">
-        <button type="button" data-size="3x3">3x3</button>
-        <button type="button" data-size="4x4">4x4</button>
-        <button type="button" data-size="5x5">5x5</button>
-        <button type="button" data-size="6x6">6x6</button>
+      <div id="difficultyMenu" class="difficulty-menu glass-panel">
+        <button type="button" data-size="3x3" class="orb-action">3x3</button>
+        <button type="button" data-size="4x4" class="orb-action">4x4</button>
+        <button type="button" data-size="5x5" class="orb-action">5x5</button>
+        <button type="button" data-size="6x6" class="orb-action">6x6</button>
       </div>
     </div>
   </div>
