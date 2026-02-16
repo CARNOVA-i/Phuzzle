@@ -560,3 +560,61 @@ canvas {
     height: min(calc(100vw - 24px), 760px);
   }
 }
+
+/* Mobile HUD rescue: allow ribbon to wrap and stop clipping */
+@media (max-width: 520px) {
+
+  .hud{
+    width: calc(100% - 14px);
+    margin: 10px auto 10px;
+    padding: 10px 10px;
+    border-radius: 28px; /* less extreme than 999px */
+  }
+
+  .ribbon{
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 22px;
+  }
+
+  .ribbon-left,
+  .ribbon-right{
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  /* Make the center collection block take full row so it never gets chopped */
+  .collection{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* Slightly smaller controls on phones */
+  .icon-btn,
+  .pill-btn{
+    height: 36px;
+    padding: 0 10px;
+    font-size: 14px;
+  }
+
+  .icon-btn{
+    width: 40px;
+  }
+
+  /* Stats: wrap cleanly and tighten */
+  .etched-stats{
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    font-size: 13px;
+    padding: 8px 0 0 0;
+    text-align: center;
+  }
+
+  .etched-stats .dot{
+    display: none; /* stops ugly mid wrap dots */
+  }
+}
