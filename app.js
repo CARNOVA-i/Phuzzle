@@ -299,8 +299,12 @@ function difficultyKey() {
 }
 
 function bestTimeStorageKey() {
-  return `phuzzle_best_${photoIndex}_${difficultyKey()}`;
+  const src = currentImageSrc() || "unknown";
+  // encode so slashes etc are safe for localStorage keys
+  const safe = encodeURIComponent(src);
+  return `phuzzle_best_${safe}_${difficultyKey()}`;
 }
+
 
 function formatTime(ms) {
   const total = Math.floor(ms / 1000);
