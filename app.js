@@ -20,12 +20,22 @@ const COLLECTIONS = {
     { src: "assets/images/nature/grace_08.jpg", label: "Cornfield" },
     { src: "assets/images/nature/carson_N1.jpg", label: "Frozen leaf" },
     { src: "assets/images/nature/carson_N2.jpg", label: "Crimson and gold" },
-    { src: "assets/images/nature/carson_N3.jpg", label: "Summer blooms" }
+    { src: "assets/images/nature/carson_N3.jpg", label: "Summer blooms" },
+    { src: "assets/images/nature/carson_N4.jpg", label: "Road leaf" },
+    { src: "assets/images/nature/carson_N5.jpg", label: "Frozen mountains" },
+    { src: "assets/images/nature/carson_N6.jpg", label: "Misty highway" },
+    { src: "assets/images/nature/carson_N7.jpg", label: "West coast sunset" },
+    { src: "assets/images/nature/carson_N8.jpg", label: "Timeless swing" },
+    { src: "assets/images/nature/carson_N9.jpg", label: "Nature, declared" },
+    { src: "assets/images/nature/carson_N10.jpg", label: "Lone mushroom" }
   ],
 
   buildings: [
     { src: "assets/images/buildings/carson_07.jpg", label: "Notre-Dame" },
-    { src: "assets/images/buildings/carson_11.jpg", label: "Lighthouse" }
+    { src: "assets/images/buildings/carson_11.jpg", label: "Lighthouse" },
+    { src: "assets/images/buildings/carson_B1.jpg", label: "Moroccan temple" },
+    { src: "assets/images/buildings/carson_B2.jpg", label: "Lost Moroccan prince" },
+    { src: "assets/images/buildings/carson_B3.jpg", label: "Mexican church" },
   ],
 
   detail: [
@@ -41,7 +51,8 @@ const COLLECTIONS = {
 
   animals: [
     { src: "assets/images/animals/grace_02.jpg", label: "Wild turkey" },
-    { src: "assets/images/animals/carson_A1.jpg", label: "Tropical macaw" }
+    { src: "assets/images/animals/carson_A1.jpg", label: "Tropical macaw" },
+    { src: "assets/images/animals/carson_A2.jpg", label: "Stranded jellyfish" }
   ],
 
   highvis: [
