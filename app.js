@@ -64,7 +64,11 @@ const COLLECTIONS = {
     { src: "assets/images/highvis/carson_HV6.jpg", label: "Two glowing circles" },
     { src: "assets/images/highvis/carson_HV7.jpg", label: "Neon heart" },
     { src: "assets/images/highvis/carson_HV8.jpg", label: "Neon planet with ring" },
-    { src: "assets/images/highvis/carson_HV9.jpg", label: "Neon star" }
+    { src: "assets/images/highvis/carson_HV9.jpg", label: "Neon star" },
+    { src: "assets/images/highvis/carson_HV10.jpg", label: "Rocketship" },
+    { src: "assets/images/highvis/carson_HV11.jpg", label: "Car" },
+    { src: "assets/images/highvis/carson_HV12.jpg", label: "Tree" },
+    { src: "assets/images/highvis/carson_HV13.jpg", label: "Apple" }
   ]
 
 };
