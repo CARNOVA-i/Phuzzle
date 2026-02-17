@@ -110,33 +110,6 @@ body {
   gap: 8px;
 }
 
-/* Collection dropdown pills match orb-action */
-#collectionMenu button{
-  padding: 10px 18px;
-
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-
-  border: 1px solid rgba(255,255,255,0.14);
-  border-radius: 999px;
-
-  color: rgba(255,255,255,0.9);
-  font: inherit;
-  font-weight: 500;
-
-  cursor: pointer;
-
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.04),
-    0 8px 20px rgba(0,0,0,0.35),
-    0 0 18px rgba(120,180,255,0.08);
-
-  transition:
-    background 140ms ease,
-    transform 120ms ease,
-    box-shadow 140ms ease;
-}
 
 #collectionMenu button:hover{
   background: rgba(255,255,255,0.14);
@@ -220,7 +193,7 @@ body {
     inset 0 1px 0 rgba(255,255,255,0.04);
 }
 
-.hud button,
+.hud button:not(.orb-action),
 .hud .pill-btn{
   background: rgba(255,255,255,0.08);
   backdrop-filter: blur(12px);
@@ -536,19 +509,6 @@ canvas {
   padding: 8px 10px; /* slightly slimmer */
 }
 
-/* Force orb-action styling inside top dropdowns */
-#collectionMenu .orb-action,
-#difficultyMenu .orb-action{
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.14);
-  border-radius: 999px;
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.04),
-    0 8px 20px rgba(0,0,0,0.35),
-    0 0 18px rgba(120,180,255,0.08);
-}
 
 .a11y-row{
   display:flex;
@@ -649,4 +609,97 @@ body.lv #puzzleCanvas{
   .etched-stats .dot{
     display: none; /* stops ugly mid wrap dots */
   }
+}
+
+
+
+/* Collection menu uses orb-menu glass, but opens downward */
+.collection .orb-menu{
+  top: calc(100% + 10px);
+  bottom: auto;
+
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px) scale(0.98);
+}
+
+.collection .orb-menu.open{
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+/* dropdown-menu should behave like orb-menu: floating pills, no slab */
+.dropdown-menu{
+  display: grid;
+  gap: 10px;
+  padding: 0;
+
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.dropdown-menu .orb-action{
+  /* ensure it wins even inside HUD contexts */
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(12px) saturate(170%);
+  -webkit-backdrop-filter: blur(12px) saturate(170%);
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.04),
+    0 8px 20px rgba(0,0,0,0.35),
+    0 0 18px rgba(120,180,255,0.08);
+}
+
+/* Dropdowns portaled to body so backdrop-filter can see the canvas like orb does */
+.menu-portal{
+  position: fixed;
+  z-index: 6000;
+}
+
+/* Use orb-menu animation language while fixed */
+.menu-portal.orb-menu{
+  transform: translateX(-50%) translateY(10px) scale(0.98);
+}
+.menu-portal.orb-menu.open{
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+.menu-portal{
+  position: fixed;
+  z-index: 6000;
+}
+
+.menu-portal.orb-menu,
+.menu-portal.dropdown-menu{
+  transform: translateX(-50%) translateY(10px) scale(0.98);
+}
+
+.menu-portal.open{
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+/* Difficulty menu: remove the slab, keep positioning + animation */
+.difficulty-menu{
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  padding: 0 !important;
+  gap: 10px !important;
+}
+
+/* Make sure difficulty buttons use orb pill styling (not the old square menu buttons) */
+.difficulty-menu button{
+  border-radius: 999px !important;
+}
+
+/* Orb menu should NOT block dragging when closed */
+.orb-wrap .orb-menu{
+  pointer-events: none !important;
+}
+
+.orb-wrap .orb-menu.open{
+  pointer-events: auto !important;
 }

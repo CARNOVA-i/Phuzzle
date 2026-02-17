@@ -48,7 +48,12 @@ const COLLECTIONS = {
     "assets/images/highvis/carson_HV1.jpg",
     "assets/images/highvis/carson_HV2.jpg",
     "assets/images/highvis/carson_HV3.jpg",
-    "assets/images/highvis/carson_HV4.jpg"
+    "assets/images/highvis/carson_HV4.jpg",
+    "assets/images/highvis/carson_HV5.jpg",
+    "assets/images/highvis/carson_HV6.jpg",
+    "assets/images/highvis/carson_HV7.jpg",
+    "assets/images/highvis/carson_HV8.jpg",
+    "assets/images/highvis/carson_HV9.jpg"
   ]
 };
 
@@ -163,29 +168,78 @@ const dragState = {
 
 
 
-function toggleDifficulty(open) {
-  const isOpen = open ?? difficultyBtn.getAttribute("aria-expanded") !== "true";
-  difficultyBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
-  difficultyMenu.classList.toggle("open", isOpen);
+
+const portalState = new Map();
+
+function portalOpen(menuEl, anchorBtn, gap = 10) {
+  if (!menuEl || !anchorBtn) return;
+
+  if (!portalState.has(menuEl)) {
+    portalState.set(menuEl, { parent: menuEl.parentNode, next: menuEl.nextSibling });
+    document.body.appendChild(menuEl);
+    menuEl.classList.add("menu-portal");
+  }
+
+
+  menuEl.style.right = "auto";
+  menuEl.style.bottom = "auto";
+
+
+
+  const r = anchorBtn.getBoundingClientRect();
+  menuEl.style.left = `${r.left + r.width / 2}px`;
+  menuEl.style.top = `${r.bottom + gap}px`;
 }
 
+function portalClose(menuEl) {
+  const st = portalState.get(menuEl);
+  if (!st) return;
+
+  st.parent.insertBefore(menuEl, st.next || null);
+  menuEl.classList.remove("menu-portal");
+  portalState.delete(menuEl);
+}
+
+
+
+
+function toggleDifficulty(forceOpen) {
+  const isOpen = difficultyMenu.classList.contains("open");
+  const next = typeof forceOpen === "boolean" ? forceOpen : !isOpen;
+
+  if (next) {
+    portalOpen(difficultyMenu, difficultyBtn, 10);
+
+    requestAnimationFrame(() => {
+      difficultyMenu.classList.add("open");
+      difficultyBtn.setAttribute("aria-expanded", "true");
+    });
+  } else {
+    difficultyMenu.classList.remove("open");
+    difficultyBtn.setAttribute("aria-expanded", "false");
+
+    setTimeout(() => {
+      portalClose(difficultyMenu);
+    }, 220);
+  }
+}
+
+// OPEN / CLOSE difficulty menu
 difficultyBtn.addEventListener("click", (e) => {
-  e.stopPropagation();
+  e.stopPropagation(); // prevents outside handlers from interfering
   toggleDifficulty();
 });
 
+// PICK a difficulty
 difficultyMenu.addEventListener("click", (e) => {
   const btn = e.target.closest("button[data-size]");
   if (!btn) return;
 
-  const size = btn.dataset.size;
-
-  console.log("difficulty picked:", size);
-
-
+  const size = btn.dataset.size; // "3x3", "4x4", etc
   difficultyBtn.textContent = size;
-  applyDifficulty(size);
+
   toggleDifficulty(false);
+  applyDifficulty(size);
 });
 
 
@@ -329,15 +383,52 @@ function applyDifficulty(size) {
   updateBestLabel();
 }
 
+
+
+
+
 function toggleCollection(forceOpen) {
   const isOpen = collectionMenu.classList.contains("open");
   const next = typeof forceOpen === "boolean" ? forceOpen : !isOpen;
-  collectionMenu.classList.toggle("open", next);
-  collectionBtn.setAttribute("aria-expanded", String(next));
+
+  if (next) {
+    // Move menu outside HUD blur root
+    portalOpen(collectionMenu, collectionBtn, 10);
+
+    requestAnimationFrame(() => {
+      collectionMenu.classList.add("open");
+      collectionBtn.setAttribute("aria-expanded", "true");
+    });
+  } else {
+    collectionMenu.classList.remove("open");
+    collectionBtn.setAttribute("aria-expanded", "false");
+
+    // Wait for close animation before restoring
+    setTimeout(() => {
+      portalClose(collectionMenu);
+    }, 220); // match your CSS transition duration
+  }
 }
 
-collectionBtn.addEventListener("click", () => toggleCollection());
+
+
+// close if you click elsewhere
+document.addEventListener("click", (e) => {
+  if (!collectionMenu.classList.contains("open")) return;
+  if (collectionBtn.contains(e.target) || collectionMenu.contains(e.target)) return;
+  toggleCollection(false);
+});
+
+// OPEN / CLOSE collection menu
+collectionBtn.addEventListener("click", (e) => {
+  console.log("collection click");
+  e.stopPropagation(); // prevents the document click closer from instantly shutting it
+  toggleCollection();
+});
+
+// PICK a collection
 collectionMenu.addEventListener("click", (e) => {
+  console.log("collection click");
   const btn = e.target.closest("button[data-collection]");
   if (!btn) return;
 
@@ -348,14 +439,6 @@ collectionMenu.addEventListener("click", (e) => {
   toggleCollection(false);
   loadCurrentPhotoAndShuffle();
 });
-
-// close if you click elsewhere
-document.addEventListener("click", (e) => {
-  if (!collectionMenu.classList.contains("open")) return;
-  if (collectionBtn.contains(e.target) || collectionMenu.contains(e.target)) return;
-  toggleCollection(false);
-});
-
 
 
 function setDifficulty(value) {
@@ -1327,13 +1410,13 @@ class ProximityTone {
     this.hOsc = this.ctx.createOscillator();
     this.hGain = this.ctx.createGain();
 
-    this.hOsc.type = "square";       // harsh overtone
+    this.hOsc.type = "triangle";       // harsh overtone
     this.hGain.gain.value = 0.0001;  // basically off
 
     this.hOsc.connect(this.hGain);
     this.hGain.connect(this.ctx.destination);
 
-    this.hOsc.frequency.value = this.osc.frequency.value * 2;
+    this.hOsc.frequency.value = this.osc.frequency.value * 1.5; // non-octave harmonic for more interesting roughness
     this.hOsc.start();
 
   }
@@ -1343,8 +1426,8 @@ class ProximityTone {
     const c = Math.max(0, Math.min(1, closeness));
     const eased = c * c;
 
-    const minHz = 180;
-    const maxHz = 1200;
+    const minHz = 140;
+    const maxHz = 480;
     const hz = minHz + (maxHz - minHz) * eased;
 
     const t = this.ctx.currentTime;
@@ -1638,20 +1721,23 @@ lvBtn?.addEventListener("click", () => {
   setPressed(lvBtn, lowVisionMode, "Low Vision: On", "Low Vision: Off");
 
   if (lowVisionMode) {
-    // Save current collection
-    previousCollection = currentCollectionKey;
+    // Save the user's current collection so we can restore it
+    previousCollection = currentCollection;
 
-    // Force highvis collection
-    currentCollectionKey = "highvis";
+    // Force the visible collection label (optional but nice)
+    currentCollection = "highvis";
+    collectionBtn.textContent = "Collection: High Vis";
   } else {
     // Restore previous collection
-    if (previousCollection) {
-      currentCollectionKey = previousCollection;
-    }
+    currentCollection = previousCollection || "all";
+    collectionBtn.textContent = "Collection";
   }
 
-  loadRandomImageFromCollection();
+  // Always restart at first image in the active list and reload immediately
+  photoIndex = 0;
+  loadCurrentPhotoAndShuffle();
 });
+
 
 
 toneBtn?.addEventListener("click", () => {

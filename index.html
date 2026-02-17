@@ -9,68 +9,90 @@
 <body>
   <main class="app">
     <header class="hud" aria-label="Puzzle Controls">
-  <!-- Thin ambient ribbon -->
-  <div class="ribbon">
-  <div class="ribbon-left">
-    <button id="prevPhotoBtn" type="button" class="icon-btn" aria-label="Previous photo">◀</button>
-    <button id="nextPhotoBtn" type="button" class="icon-btn" aria-label="Next photo">▶</button>
-    <button id="randomPhotoBtn" type="button" class="pill-btn" aria-label="Random photo">Random</button>
-  </div>
-    <div class="collection">
-    <button id="collectionBtn" type="button" class="pill-btn" aria-expanded="false">
-      Collection
-    </button>
 
-    <div id="collectionMenu" class="dropdown-menu glass-panel">
-      <button type="button" data-collection="nature" class="orb-action" role="menuitem">Nature</button>
-      <button type="button" data-collection="buildings" class="orb-action" role="menuitem">Buildings</button>
-      <button type="button" data-collection="detail" class="orb-action" role="menuitem">Detail</button>
-      <button type="button" data-collection="animals" class="orb-action" role="menuitem">Animals</button>
-    </div>
-  </div>
+      <!-- Thin ambient ribbon -->
+      <div class="ribbon">
 
-  <div class="ribbon-right">
-    <div class="difficulty">
-      <button id="difficultyBtn" class="pill-btn" aria-expanded="false">4x4</button>
-      <div id="difficultyMenu" class="difficulty-menu glass-panel">
-        <button type="button" data-size="3x3" class="orb-action">3x3</button>
-        <button type="button" data-size="4x4" class="orb-action">4x4</button>
-        <button type="button" data-size="5x5" class="orb-action">5x5</button>
-        <button type="button" data-size="6x6" class="orb-action">6x6</button>
+        <div class="ribbon-left">
+          <button id="prevPhotoBtn" type="button" class="icon-btn" aria-label="Previous photo">◀</button>
+          <button id="nextPhotoBtn" type="button" class="icon-btn" aria-label="Next photo">▶</button>
+          <button id="randomPhotoBtn" type="button" class="pill-btn" aria-label="Random photo">Random</button>
+        </div>
+
+        <div class="collection">
+          <button
+            id="collectionBtn"
+            type="button"
+            class="pill-btn"
+            aria-expanded="false"
+            aria-controls="collectionMenu"
+          >
+            Collection
+          </button>
+
+          <!-- IMPORTANT: no glass-panel here. Let the pills do the frosting. -->
+          <div
+            id="collectionMenu"
+            class="orb-menu"
+            role="menu"
+            aria-label="Collections"
+          >
+            <button type="button" data-collection="nature" class="orb-action" role="menuitem">Nature</button>
+            <button type="button" data-collection="buildings" class="orb-action" role="menuitem">Buildings</button>
+            <button type="button" data-collection="detail" class="orb-action" role="menuitem">Detail</button>
+            <button type="button" data-collection="animals" class="orb-action" role="menuitem">Animals</button>
+          </div>
+        </div>
+
+        <div class="ribbon-right">
+          <div class="difficulty">
+            <button
+              id="difficultyBtn"
+              type="button"
+              class="orb-action"
+              aria-expanded="false"
+              aria-controls="difficultyMenu"
+            >
+              4x4
+            </button>
+
+            <!-- IMPORTANT: no glass-panel here either. -->
+            <div
+              id="difficultyMenu"
+              class="difficulty-menu"
+              role="menu"
+              aria-label="Difficulty"
+            >
+              <button type="button" data-size="3x3" class="orb-action" role="menuitem">3x3</button>
+              <button type="button" data-size="4x4" class="orb-action" role="menuitem">4x4</button>
+              <button type="button" data-size="5x5" class="orb-action" role="menuitem">5x5</button>
+              <button type="button" data-size="6x6" class="orb-action" role="menuitem">6x6</button>
+            </div>
+          </div>
+        </div>
+
       </div>
-    </div>
-  </div>
-</div>
 
+      <!-- Etched stats (below ribbon, still above board) -->
+      <div class="etched-stats" aria-live="polite">
+        <div class="a11y-row" aria-label="Accessibility controls">
+          <button id="lvBtn" type="button" class="pill-btn" aria-pressed="false">Low Vision: Off</button>
+          <button id="toneBtn" type="button" class="pill-btn" aria-pressed="false">Tone: Off</button>
+          <button id="vibeBtn" type="button" class="pill-btn" aria-pressed="false">Vibe: Off</button>
+        </div>
 
-  <!-- Etched stats (below ribbon, still above board) -->
-  <div class="etched-stats" aria-live="polite">
-    <div class="a11y-row" aria-label="Accessibility controls">
-      <button id="lvBtn" type="button" class="pill-btn" aria-pressed="false">
-        Low Vision: Off
-      </button>
+        <span id="movesLabel">Moves: 0</span>
+        <span class="dot">•</span>
+        <span id="timerLabel">Time: 00:00</span>
+        <span class="dot">•</span>
+        <span id="bestLabel">Best: --:--</span>
+      </div>
 
-      <button id="toneBtn" type="button" class="pill-btn" aria-pressed="false">
-        Tone: Off
-      </button>
-
-      <button id="vibeBtn" type="button" class="pill-btn" aria-pressed="false">
-        Vibe: Off
-      </button>
-    </div>
-
-    <span id="movesLabel">Moves: 0</span>
-    <span class="dot">•</span>
-    <span id="timerLabel">Time: 00:00</span>
-    <span class="dot">•</span>
-    <span id="bestLabel">Best: --:--</span>
-  </div>
-
-</header>
-
+    </header>
 
     <section class="board-wrap">
       <canvas id="puzzleCanvas" aria-label="Puzzle board"></canvas>
+
       <!-- Hover sculpture controls -->
       <div class="orb-wrap" aria-label="Quick controls">
         <button id="orbBtn" type="button" class="orb" aria-label="Open controls" aria-expanded="false">
