@@ -5,57 +5,59 @@
 let currentCollection = "all";
 
 const COLLECTIONS = {
-  nature: [
-    "assets/images/nature/carson_01.jpg",
-    "assets/images/nature/carson_02.jpg",
-    "assets/images/nature/carson_03.jpg",
-    "assets/images/nature/carson_04.jpg",
-    "assets/images/nature/carson_08.jpg",
-    "assets/images/nature/carson_09.jpg",
-    "assets/images/nature/carson_10.jpg",
-    "assets/images/nature/carson_12.jpg",
-    "assets/images/nature/carson_13.jpg",
-    "assets/images/nature/carson_14.jpg",
-    "assets/images/nature/grace_08.jpg",
-    "assets/images/nature/carson_N1.jpg",
-    "assets/images/nature/carson_N2.jpg",
-    "assets/images/nature/carson_N3.jpg"
 
+  nature: [
+    { src: "assets/images/nature/carson_01.jpg", label: "Alpine dawn" },
+    { src: "assets/images/nature/carson_02.jpg", label: "Winter halo" },
+    { src: "assets/images/nature/carson_03.jpg", label: "Dock remnant" },
+    { src: "assets/images/nature/carson_04.jpg", label: "Yamnuska edge" },
+    { src: "assets/images/nature/carson_08.jpg", label: "Foggy drive" },
+    { src: "assets/images/nature/carson_09.jpg", label: "Mexican sunrise" },
+    { src: "assets/images/nature/carson_10.jpg", label: "Forgotten rail" },
+    { src: "assets/images/nature/carson_12.jpg", label: "Sentinel leaf" },
+    { src: "assets/images/nature/carson_13.jpg", label: "Wise tree" },
+    { src: "assets/images/nature/carson_14.jpg", label: "Standout leaf" },
+    { src: "assets/images/nature/grace_08.jpg", label: "Cornfield" },
+    { src: "assets/images/nature/carson_N1.jpg", label: "Frozen leaf" },
+    { src: "assets/images/nature/carson_N2.jpg", label: "Crimson and gold" },
+    { src: "assets/images/nature/carson_N3.jpg", label: "Summer blooms" }
   ],
 
   buildings: [
-    "assets/images/buildings/carson_07.jpg",
-    "assets/images/buildings/carson_11.jpg"
+    { src: "assets/images/buildings/carson_07.jpg", label: "Notre-Dame" },
+    { src: "assets/images/buildings/carson_11.jpg", label: "Lighthouse" }
   ],
 
   detail: [
-    "assets/images/detail/grace_01.jpg",
-    "assets/images/detail/grace_03.jpg",
-    "assets/images/detail/grace_04.jpg",
-    "assets/images/detail/grace_05.jpg",
-    "assets/images/detail/grace_06.jpg",
-    "assets/images/detail/grace_07.jpg",
-    "assets/images/detail/grace_09.jpg",
-    "assets/images/detail/grace_10.jpg"
+    { src: "assets/images/detail/grace_01.jpg", label: "Spring bee" },
+    { src: "assets/images/detail/grace_03.jpg", label: "Summer flowers" },
+    { src: "assets/images/detail/grace_04.jpg", label: "Dewdrop" },
+    { src: "assets/images/detail/grace_05.jpg", label: "Moss" },
+    { src: "assets/images/detail/grace_06.jpg", label: "Mushroom city" },
+    { src: "assets/images/detail/grace_07.jpg", label: "Lone mushroom" },
+    { src: "assets/images/detail/grace_09.jpg", label: "Dewdrop detail" },
+    { src: "assets/images/detail/grace_10.jpg", label: "Moss dewdrop" }
   ],
 
   animals: [
-    "assets/images/animals/grace_02.jpg",
-    "assets/images/animals/carson_A1.jpg"
+    { src: "assets/images/animals/grace_02.jpg", label: "Wild turkey" },
+    { src: "assets/images/animals/carson_A1.jpg", label: "Tropical macaw" }
   ],
 
   highvis: [
-    "assets/images/highvis/carson_HV1.jpg",
-    "assets/images/highvis/carson_HV2.jpg",
-    "assets/images/highvis/carson_HV3.jpg",
-    "assets/images/highvis/carson_HV4.jpg",
-    "assets/images/highvis/carson_HV5.jpg",
-    "assets/images/highvis/carson_HV6.jpg",
-    "assets/images/highvis/carson_HV7.jpg",
-    "assets/images/highvis/carson_HV8.jpg",
-    "assets/images/highvis/carson_HV9.jpg"
+    { src: "assets/images/highvis/carson_HV1.jpg", label: "Five glowing rings" },
+    { src: "assets/images/highvis/carson_HV2.jpg", label: "Yellow sun on blue" },
+    { src: "assets/images/highvis/carson_HV3.jpg", label: "Rainbow target circle" },
+    { src: "assets/images/highvis/carson_HV4.jpg", label: "Diagonal rainbow stripes" },
+    { src: "assets/images/highvis/carson_HV5.jpg", label: "Four color squares" },
+    { src: "assets/images/highvis/carson_HV6.jpg", label: "Two glowing circles" },
+    { src: "assets/images/highvis/carson_HV7.jpg", label: "Neon heart" },
+    { src: "assets/images/highvis/carson_HV8.jpg", label: "Neon planet with ring" },
+    { src: "assets/images/highvis/carson_HV9.jpg", label: "Neon star" }
   ]
+
 };
+
 
 
   // auto-generate "all"
@@ -74,8 +76,9 @@ function getActivePhotoList() {
 
 function currentImageSrc() {
   const list = getActivePhotoList();
-  return list[photoIndex] || "";
+  return list[photoIndex]?.src || "";
 }
+
 
 
 const DIFFICULTIES = {
@@ -131,6 +134,8 @@ let timerHandle = null;
 let confettiParticles = [];
 let confettiActive = false;
 let dpr = Math.max(1, window.devicePixelRatio || 1);
+let currentImage = null; // { src, label }
+
 const lockedTiles = new Set();
 
 
@@ -282,13 +287,13 @@ orbMenu?.addEventListener("click", () => {
 
 function isGracePhoto() {
   const list = getActivePhotoList();
-  const src = list[photoIndex] || "";
+  const src = list[photoIndex]?.src || "";
   return src.toLowerCase().includes("/grace_");
 }
 
 function isCarsonPhoto() {
   const list = getActivePhotoList();
-  const src = list[photoIndex] || "";
+  const src = list[photoIndex]?.src || "";
   return src.toLowerCase().includes("/carson_");
 }
 
@@ -1332,6 +1337,22 @@ function spawnConfetti(size) {
 }
 
 
+function speakSolvedLabel() {
+  const label = currentImage?.label;
+  if (!lowVisionMode) return;
+
+
+  speechSynthesis.cancel();
+
+  const u = new SpeechSynthesisUtterance(label);
+  u.rate = 0.9;
+  u.pitch = 1.0;
+  u.volume = 1.0;
+
+  speechSynthesis.speak(u);
+}
+
+
 
 
 function completeMoveIfNeeded() {
@@ -1365,6 +1386,9 @@ function completeMoveIfNeeded() {
       proxTone.victoryChime();
       spawnConfetti(canvas.width / dpr);
       if (navigator.vibrate) navigator.vibrate(40);
+      
+      speakSolvedLabel();
+
     }
   }
 
@@ -1676,7 +1700,12 @@ function loadCurrentPhotoAndShuffle() {
   if (!list.length) return;
 
   photoIndex = ((photoIndex % list.length) + list.length) % list.length;
-  const src = list[photoIndex];
+
+  const item = list[photoIndex];
+  if (!item) return;
+
+  currentImage = item;
+  const src = item.src;
 
   image = new Image();
   image.onload = () => {
@@ -1691,6 +1720,7 @@ function loadCurrentPhotoAndShuffle() {
   };
   image.src = src;
 }
+
 
 function stepPhoto(delta) {
   const list = getActivePhotoList();
