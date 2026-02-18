@@ -208,6 +208,10 @@ const dragState = {
 };
 
 
+const DRAG_THRESHOLD_PX = 10; // try 8 to 14 (higher = less sensitive)
+let pendingDrag = null;
+
+
 
 
 const portalState = new Map();
@@ -1699,8 +1703,6 @@ function computeDragCloseness(){
 function beginDrag(e) {
   if (!imageLoaded || solved || isPaused) return;
 
-  // If this is a touch, allow vertical scrolling unless it's clearly a deliberate drag.
-  // (Small threshold helps iOS decide scroll vs drag)
   const startClientX = e.clientX;
   const startClientY = e.clientY;
 
@@ -1712,62 +1714,88 @@ function beginDrag(e) {
   const cluster = getClusterFromIndex(startIndex);
   if (clusterHasLockedTile(cluster.members)) return;
 
-  // Capture the pointer and preventDefault only after we commit to dragging
-  // This keeps iOS scroll available when the user is just trying to scroll the page.
-  canvas.setPointerCapture(e.pointerId);
-  e.preventDefault();
-  
-
-  const tileIndexById = buildTileIndexMap();
-  const anchorCell = indexToRowCol(startIndex);
-  const offsetsByTileId = new Map();
-
-  for (const tileId of cluster.members) {
-    const index = tileIndexById[tileId];
-    const cell = indexToRowCol(index);
-    offsetsByTileId.set(tileId, {
-      dRow: cell.row - anchorCell.row,
-      dCol: cell.col - anchorCell.col
-    });
-  }
-
-  dragState.pointerId = e.pointerId;
-  dragState.active = true;
-  dragState.draggedTileId = draggedTileId;
-  dragState.sourceAnchorIndex = startIndex;
-  dragState.targetIndex = startIndex;
-  dragState.clusterRoot = cluster.root;
-  dragState.memberTileIds = cluster.members.slice();
-  dragState.memberTileSet = new Set(cluster.members);
-  dragState.offsetsByTileId = offsetsByTileId;
-  dragState.x = point.x;
-  dragState.y = point.y;
-
-  if (toneEnabled) proxTone.start();
-  if (vibeEnabled) proxVibe.update(computeDragCloseness());
-
-
-  draw();
+  pendingDrag = {
+    pointerId: e.pointerId,
+    startClientX,
+    startClientY,
+    startIndex,
+    draggedTileId,
+    clusterRoot: cluster.root,
+    members: cluster.members.slice()
+  };
 }
 
-
 function moveDrag(e) {
-  if (!dragState.active || dragState.pointerId !== e.pointerId) return;
+  if (!dragState.active) {
+    if (!pendingDrag || pendingDrag.pointerId !== e.pointerId) return;
+
+    const dx = e.clientX - pendingDrag.startClientX;
+    const dy = e.clientY - pendingDrag.startClientY;
+
+    // Favor scroll unless it’s more horizontal than vertical
+    if (Math.abs(dy) > Math.abs(dx)) return;
+
+    if (Math.hypot(dx, dy) < DRAG_THRESHOLD_PX) return;
+
+    canvas.setPointerCapture(e.pointerId);
+    e.preventDefault();
+
+    const commitPoint = clientToCanvasPoint(e.clientX, e.clientY);
+
+    const tileIndexById = buildTileIndexMap();
+    const anchorCell = indexToRowCol(pendingDrag.startIndex);
+    const offsetsByTileId = new Map();
+
+    for (const tileId of pendingDrag.members) {
+      const index = tileIndexById[tileId];
+      const cell = indexToRowCol(index);
+      offsetsByTileId.set(tileId, {
+        dRow: cell.row - anchorCell.row,
+        dCol: cell.col - anchorCell.col
+      });
+    }
+
+    dragState.pointerId = e.pointerId;
+    dragState.active = true;
+    dragState.draggedTileId = pendingDrag.draggedTileId;
+    dragState.sourceAnchorIndex = pendingDrag.startIndex;
+    dragState.targetIndex = pendingDrag.startIndex;
+    dragState.clusterRoot = pendingDrag.clusterRoot;
+    dragState.memberTileIds = pendingDrag.members.slice();
+    dragState.memberTileSet = new Set(pendingDrag.members);
+    dragState.offsetsByTileId = offsetsByTileId;
+    dragState.x = commitPoint.x;
+    dragState.y = commitPoint.y;
+
+    pendingDrag = null;
+
+    if (toneEnabled) proxTone.start();
+    if (vibeEnabled) proxVibe.update(computeDragCloseness());
+
+    draw();
+    return;
+  }
+
+  if (dragState.pointerId !== e.pointerId) return;
+
   const point = clientToCanvasPoint(e.clientX, e.clientY);
   dragState.x = point.x;
   dragState.y = point.y;
   dragState.targetIndex = boardIndexFromPoint(point.x, point.y);
+
   const c = computeDragCloseness();
   const og = computeOffGrid01(dragState.x, dragState.y, tileWidth, tileHeight);
 
   if (toneEnabled) proxTone.update(c, og);
-
   if (vibeEnabled) proxVibe.update(c);
 
   draw();
 }
 
 function endDrag(e) {
+  // Clear pending drag even if we never activated
+  if (pendingDrag && pendingDrag.pointerId === e.pointerId) pendingDrag = null;
+
   if (!dragState.active || dragState.pointerId !== e.pointerId) return;
 
   if (canvas.hasPointerCapture?.(e.pointerId)) {
@@ -1777,9 +1805,9 @@ function endDrag(e) {
   if (toneEnabled) proxTone.stop();
   if (vibeEnabled) proxVibe.stop();
 
-
   completeMoveIfNeeded();
 }
+
 
 function cancelDrag(e) {
   if (dragState.active && dragState.pointerId === e.pointerId) {
