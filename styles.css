@@ -44,11 +44,18 @@
 * { box-sizing: border-box; }
 
 html, body {
+  height: 100%;
   margin: 0;
   padding: 0;
-  min-height: 100%;
-  overflow-x: hidden;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: auto;
 }
+
+.app {
+  height: 100%;
+}
+
 
 body {
   font-family: ui-sans-serif, system-ui, "Segoe UI", Tahoma, sans-serif;
@@ -702,4 +709,12 @@ body.lv #puzzleCanvas{
 
 .orb-wrap .orb-menu.open{
   pointer-events: auto !important;
+}
+
+#puzzleCanvas {
+  touch-action: pan-y;
+}
+
+.board-wrap {
+  overflow: hidden;
 }

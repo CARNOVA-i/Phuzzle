@@ -1699,7 +1699,12 @@ function computeDragCloseness(){
 function beginDrag(e) {
   if (!imageLoaded || solved || isPaused) return;
 
-  const point = clientToCanvasPoint(e.clientX, e.clientY);
+  // If this is a touch, allow vertical scrolling unless it's clearly a deliberate drag.
+  // (Small threshold helps iOS decide scroll vs drag)
+  const startClientX = e.clientX;
+  const startClientY = e.clientY;
+
+  const point = clientToCanvasPoint(startClientX, startClientY);
   const startIndex = boardIndexFromPoint(point.x, point.y);
   if (startIndex < 0) return;
 
@@ -1707,8 +1712,11 @@ function beginDrag(e) {
   const cluster = getClusterFromIndex(startIndex);
   if (clusterHasLockedTile(cluster.members)) return;
 
-  e.preventDefault();
+  // Capture the pointer and preventDefault only after we commit to dragging
+  // This keeps iOS scroll available when the user is just trying to scroll the page.
   canvas.setPointerCapture(e.pointerId);
+  e.preventDefault();
+  
 
   const tileIndexById = buildTileIndexMap();
   const anchorCell = indexToRowCol(startIndex);
