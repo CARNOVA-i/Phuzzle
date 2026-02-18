@@ -68,8 +68,29 @@ const COLLECTIONS = {
     { src: "assets/images/highvis/carson_HV10.jpg", label: "Rocketship" },
     { src: "assets/images/highvis/carson_HV11.jpg", label: "Car" },
     { src: "assets/images/highvis/carson_HV12.jpg", label: "Tree" },
-    { src: "assets/images/highvis/carson_HV13.jpg", label: "Apple" }
-  ]
+    { src: "assets/images/highvis/carson_HV13.jpg", label: "Apple" },
+    { src: "assets/images/highvis/carson_HV14.jpg", label: "Cute bear" },
+    { src: "assets/images/highvis/carson_HV15.jpg", label: "Flower" },
+    { src: "assets/images/highvis/nova_HV1.jpg", label: "Rocketship blueprint" },
+    { src: "assets/images/highvis/nova_HV2.jpg", label: "Gear Blueprint" },
+    { src: "assets/images/highvis/nova_HV3.jpg", label: "Car blueprint" },
+    { src: "assets/images/highvis/nova_HV4.jpg", label: "Wrench blueprint" },
+    { src: "assets/images/highvis/nova_HV5.jpg", label: "Lightbulb blueprint" },
+    { src: "assets/images/highvis/nova_HV6.jpg", label: "Warm tea" },
+    { src: "assets/images/highvis/nova_HV7.jpg", label: "Antique radio" },
+    { src: "assets/images/highvis/nova_HV8.jpg", label: "Bicycle" },
+    { src: "assets/images/highvis/nova_HV9.jpg", label: "Sewing machine" },
+  ],
+
+
+  ai: [
+  { src: "assets/images/ai/nova_AI1.jpg", label: "Rupture" },
+  { src: "assets/images/ai/nova_AI2.jpg", label: "Procession" },
+  { src: "assets/images/ai/nova_AI3.jpg", label: "Fragment" },
+  { src: "assets/images/ai/nova_AI4.jpg", label: "Inversion" },
+  { src: "assets/images/ai/nova_AI5.jpg", label: "Awakening" },
+  { src: "assets/images/ai/nova_AI6.jpg", label: "Threshold" },
+],
 
 };
 
@@ -312,6 +333,11 @@ function isCarsonPhoto() {
   return src.toLowerCase().includes("/carson_");
 }
 
+function isNovaPhoto() {
+  const list = getActivePhotoList();
+  const src = list[photoIndex]?.src || "";
+  return src.toLowerCase().includes("/nova_");
+}
 
 
 function difficultyKey() {
@@ -1115,6 +1141,52 @@ function drawCarsonWatermark(size) {
   ctx.restore();
 }
 
+function drawNovaWatermark(size) {
+  if (!isNovaPhoto()) return;
+  if (!solved && !(solveAnim && solveAnim.active)) return;
+
+  const now = performance.now();
+  const t = (solveAnim && solveAnim.active)
+    ? Math.min(1, (now - solveAnim.start) / solveAnim.durationMs)
+    : 1;
+
+  const fadeIn = Math.min(1, Math.max(0, (t - 0.35) / 0.35));
+  const alpha = 0.55 * fadeIn;
+
+  const pad = Math.max(16, Math.floor(size * 0.025));
+  const x = size - pad;
+  const y = size - pad;
+
+  ctx.save();
+
+  // Subtle depth shadow
+  ctx.shadowColor = `rgba(0,0,0,${0.45 * fadeIn})`;
+  ctx.shadowBlur = 12;
+
+  ctx.textAlign = "right";
+  ctx.textBaseline = "bottom";
+
+  // Main NOVA mark
+  ctx.fillStyle = `rgba(236, 242, 255, ${alpha})`;
+  ctx.font = `800 ${Math.max(20, Math.floor(size * 0.05))}px ui-sans-serif, system-ui, "Segoe UI", sans-serif`;
+  ctx.fillText("NOVA", x, y);
+
+  // Cyan edge glow accent
+  ctx.shadowColor = `rgba(86, 204, 242, ${0.6 * fadeIn})`;
+  ctx.shadowBlur = 8;
+  ctx.fillStyle = `rgba(86, 204, 242, ${alpha * 0.6})`;
+  ctx.font = `700 ${Math.max(10, Math.floor(size * 0.02))}px ui-sans-serif, system-ui, "Segoe UI", sans-serif`;
+  ctx.fillText("CAR NOVA.i", x, y + Math.max(16, Math.floor(size * 0.03)));
+
+  // Micro stamp
+  ctx.shadowBlur = 4;
+  ctx.fillStyle = `rgba(255,255,255,${alpha * 0.25})`;
+  ctx.font = `600 ${Math.max(8, Math.floor(size * 0.016))}px ui-monospace, monospace`;
+  ctx.fillText("AI AUTHORIZED", x, y - Math.max(26, Math.floor(size * 0.055)));
+
+  ctx.restore();
+}
+
 
 
 
@@ -1258,8 +1330,15 @@ function draw() {
   drawSolveOverlay(size);
 
   
-  if (isCarsonPhoto()) drawCarsonWatermark(size);
-else drawGraceWatermark(size);
+    if (isNovaPhoto()) {
+    drawNovaWatermark(size);
+  } else if (isCarsonPhoto()) {
+    drawCarsonWatermark(size);
+  } else if (isGracePhoto()) {
+    drawGraceWatermark(size);
+  }
+
+  
 
 
   
