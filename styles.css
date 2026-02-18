@@ -236,20 +236,31 @@ body {
 .etched-stats .dot {
   opacity: 0.35;
 }
-
-/* Hover orb */
-/* Orb sits below the canvas, centered */
+/* Orb is always reachable: fixed bottom center */
 .orb-wrap{
-  position: relative;        /* let it participate in layout */
+  position: fixed;          /* was: relative */
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
   display: grid;
   place-items: center;
-  z-index: 30;
+  z-index: 7000;
+  pointer-events: none;     /* container ignores, orb/menu handle clicks */
 }
 
+/* only the orb + menu take clicks */
 .orb-wrap .orb,
 .orb-wrap .orb-menu{
   pointer-events: auto;
 }
+
+/* Keep menu above the orb */
+.orb-menu{
+  left: 50%;
+  bottom: calc(100% + 10px);
+  top: auto;
+}
+
 
 
 .orb-wrap > * {
@@ -397,8 +408,10 @@ body {
   position: relative;
   display: grid;
   place-items: center;
-  gap: 14px; /* space between board and orb row */
+  gap: 0;            /* was 14px */
+  overflow: hidden;
 }
+
 
 /* Canvas stays premium */
 canvas {

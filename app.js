@@ -143,6 +143,7 @@ const collectionMenu = document.getElementById("collectionMenu");
 const lvBtn = document.getElementById("lvBtn");
 const toneBtn = document.getElementById("toneBtn");
 const vibeBtn = document.getElementById("vibeBtn");
+const speakBtn = document.getElementById("speakBtn");
 
 
 let previousCollection = null;
@@ -150,6 +151,7 @@ let previousCollection = null;
 let lowVisionMode = false;
 let toneEnabled = false;
 let vibeEnabled = false;
+let spokenTitlesEnabled = false;
 
 
 let photoIndex = 0;
@@ -1437,8 +1439,7 @@ function spawnConfetti(size) {
 
 function speakSolvedLabel() {
   const label = currentImage?.label;
-  if (!lowVisionMode) return;
-
+  if (!spokenTitlesEnabled || !label) return;
 
   speechSynthesis.cancel();
 
@@ -1449,6 +1450,7 @@ function speakSolvedLabel() {
 
   speechSynthesis.speak(u);
 }
+
 
 
 
@@ -1915,6 +1917,15 @@ vibeBtn?.addEventListener("click", () => {
   setPressed(vibeBtn, vibeEnabled, "Vibe: On", "Vibe: Off");
   if (!vibeEnabled) proxVibe.stop();
 });
+
+
+
+speakBtn?.addEventListener("click", () => {
+  spokenTitlesEnabled = !spokenTitlesEnabled;
+  setPressed(speakBtn, spokenTitlesEnabled, "Titles: On", "Titles: Off");
+});
+
+
 
 
 prevPhotoBtn.addEventListener("click", () => stepPhoto(-1));
