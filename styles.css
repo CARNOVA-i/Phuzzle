@@ -236,23 +236,24 @@ body {
 .etched-stats .dot {
   opacity: 0.35;
 }
-/* Orb is always reachable: fixed bottom center */
+
+/* Orb lives on the board: bottom center */
 .orb-wrap{
-  position: fixed;          /* was: relative */
+  position: absolute;
   left: 50%;
-  bottom: 16px;
+  bottom: 12px;
   transform: translateX(-50%);
   display: grid;
   place-items: center;
-  z-index: 7000;
-  pointer-events: none;     /* container ignores, orb/menu handle clicks */
+  z-index: 80;
+  pointer-events: none;
 }
 
-/* only the orb + menu take clicks */
 .orb-wrap .orb,
 .orb-wrap .orb-menu{
   pointer-events: auto;
 }
+
 
 /* Keep menu above the orb */
 .orb-menu{
@@ -725,9 +726,214 @@ body.lv #puzzleCanvas{
 }
 
 #puzzleCanvas {
-  touch-action: pan-y;
+  touch-action: none;
 }
 
 .board-wrap {
   overflow: hidden;
+}
+
+
+
+/* ---------------------------------How-To modal (orb style)-------------------------------------- */
+.howto-overlay{
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  z-index: 9000;
+
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.howto-card{
+  width: min(520px, calc(100vw - 32px));
+  border-radius: 22px;
+
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    0 26px 70px rgba(0,0,0,0.55),
+    inset 0 1px 0 var(--glass-highlight);
+
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+
+  padding: 14px 14px 12px 14px;
+}
+
+.howto-head{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 6px 8px 6px;
+}
+
+.howto-title{
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: 0.2px;
+  color: var(--ink);
+}
+
+.howto-x{
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.14);
+  color: var(--ink);
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.04),
+    0 8px 20px rgba(0,0,0,0.35);
+
+  cursor: pointer;
+}
+
+.howto-body{
+  color: var(--muted);
+  padding: 6px 10px 10px 10px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.howto-body ul{
+  margin: 10px 0 10px 18px;
+  padding: 0;
+}
+
+.howto-tip{
+  opacity: 0.85;
+  margin: 10px 0 0 0;
+}
+
+.howto-actions{
+  display: flex;
+  justify-content: center;
+  padding: 8px 6px 4px 6px;
+}
+
+.howto-gotit{
+  min-width: 180px;
+  font-weight: 800;
+}
+
+.howto-overlay[hidden]{
+  display: none !important;
+}
+
+
+/* --------------------------------- Loading overlay (also orb style) -------------------------------------- */
+.loading-overlay{
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: 120;              /* above canvas + orb */
+  pointer-events: none;      /* never blocks dragging */
+}
+
+.loading-overlay[hidden]{
+  display: none !important;
+}
+
+.loading-card{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 12px 14px;
+  border-radius: 999px;
+
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    0 20px 55px rgba(0,0,0,0.55),
+    inset 0 1px 0 var(--glass-highlight);
+
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+
+  transform: translateY(6px);
+  opacity: 0;
+  animation: loaderIn 180ms ease forwards;
+}
+
+@keyframes loaderIn{
+  to{ transform: translateY(0); opacity: 1; }
+}
+
+.loading-spinner{
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid rgba(236,242,255,0.18);
+  border-top-color: rgba(86,204,242,0.85);
+  animation: spin 650ms linear infinite;
+}
+
+@keyframes spin{
+  to{ transform: rotate(360deg); }
+}
+
+.loading-title{
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.1;
+}
+
+.loading-sub{
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.1;
+  margin-top: 2px;
+}
+
+.loading-overlay{
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: 120;
+  pointer-events: none;
+}
+
+.loading-overlay[hidden]{
+  display: none !important;
+}
+
+/* The frosted veil */
+.loading-overlay::before{
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  /* the important part: translucent fill so backdrop-filter kicks in */
+  background: rgba(0,0,0,0.28);
+
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+
+  border-radius: calc(var(--radius) + 6px); /* match canvas rounding vibe */
+}
+
+/* keep the loader card above the veil */
+.loading-card{
+  position: relative;
+  z-index: 1;
+}
+
+.board-wrap.is-loading #puzzleCanvas{
+  filter: blur(10px) saturate(1.15) brightness(0.85);
 }

@@ -144,6 +144,13 @@ const lvBtn = document.getElementById("lvBtn");
 const toneBtn = document.getElementById("toneBtn");
 const vibeBtn = document.getElementById("vibeBtn");
 const speakBtn = document.getElementById("speakBtn");
+const infoBtn = document.getElementById("infoBtn");
+const howtoOverlay = document.getElementById("howtoOverlay");
+const howtoGotItBtn = document.getElementById("howtoGotItBtn");
+const howtoCloseBtn = document.getElementById("howtoCloseBtn");
+const loadingOverlay = document.getElementById("loadingOverlay");
+
+
 
 
 let previousCollection = null;
@@ -177,6 +184,8 @@ let currentImage = null; // { src, label }
 const lockedTiles = new Set();
 
 
+const LOADER_MIN_MS = 1200; // adjust this (milliseconds)
+const boardWrap = document.querySelector(".board-wrap");
 
 
 
@@ -210,8 +219,85 @@ const dragState = {
 };
 
 
-const DRAG_THRESHOLD_PX = 10; // try 8 to 14 (higher = less sensitive)
+const DRAG_THRESHOLD_PX = 12; // try 8 to 14 (higher = less sensitive)
 let pendingDrag = null;
+
+
+
+let loadingStartTime = 0;
+
+
+
+function showLoading(text1 = "Loading photo", text2 = "Shuffling tiles…"){
+  if (!loadingOverlay) return;
+
+  loaderShownAt = performance.now();
+
+  const t = loadingOverlay.querySelector(".loading-title");
+  const s = loadingOverlay.querySelector(".loading-sub");
+  if (t) t.textContent = text1;
+  if (s) s.textContent = text2;
+
+  loadingOverlay.hidden = false;
+  boardWrap?.classList.add("is-loading");
+}
+
+function hideLoading(){
+  if (!loadingOverlay) return;
+
+  const elapsed = performance.now() - loaderShownAt;
+  const wait = Math.max(0, LOADER_MIN_MS - elapsed);
+
+  setTimeout(() => {
+    loadingOverlay.hidden = true;
+    boardWrap?.classList.remove("is-loading");
+  }, wait);
+}
+
+
+
+
+
+
+
+const HOWTO_SEEN_KEY = "phuzzle_howto_seen_v1";
+
+function openHowTo() {
+  if (!howtoOverlay) return;
+  howtoOverlay.hidden = false;
+  setOrbOpen(false);
+}
+
+function closeHowTo(markSeen = true) {
+  if (!howtoOverlay) return;
+  howtoOverlay.hidden = true;
+  if (markSeen) localStorage.setItem(HOWTO_SEEN_KEY, "1");
+}
+
+/* One listener to rule them all */
+howtoOverlay?.addEventListener("click", (e) => {
+  const t = e.target;
+
+  // click outside card closes
+  if (t === howtoOverlay) return closeHowTo(true);
+
+  // click X closes
+  if (t.closest && t.closest("#howtoCloseBtn")) return closeHowTo(true);
+
+  // click Got it closes
+  if (t.closest && t.closest("#howtoGotItBtn")) return closeHowTo(true);
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && howtoOverlay && !howtoOverlay.hidden) closeHowTo(true);
+});
+
+infoBtn?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  openHowTo();
+});
+
+
 
 
 
@@ -1826,6 +1912,7 @@ function cancelDrag(e) {
 
 function loadCurrentPhotoAndShuffle() {
   imageLoaded = false;
+  showLoading("Loading photo", "Shuffling tiles…");
   draw();
 
   const list = getActivePhotoList();
@@ -1845,13 +1932,16 @@ function loadCurrentPhotoAndShuffle() {
     resizeCanvas();
     shuffleBoard();
     updateBestLabel();
+    hideLoading();
   };
   image.onerror = () => {
     imageLoaded = false;
+    hideLoading();
     draw();
   };
   image.src = src;
 }
+
 
 
 function stepPhoto(delta) {
@@ -1906,6 +1996,18 @@ lvBtn?.addEventListener("click", () => {
 
 
 
+howtoOverlay?.addEventListener("click", () => {
+  console.log("overlay click fired");
+});
+
+
+
+
+
+
+
+
+
 toneBtn?.addEventListener("click", () => {
   toneEnabled = !toneEnabled;
   setPressed(toneBtn, toneEnabled, "Tone: On", "Tone: Off");
@@ -1946,4 +2048,9 @@ window.addEventListener("resize", resizeCanvas);
 applyDifficulty(difficultyBtn?.textContent?.trim() || "4x4");
 updateStats();
 updateBestLabel();
+
+if (!localStorage.getItem(HOWTO_SEEN_KEY)) {
+  openHowTo();
+}
+
 loadCurrentPhotoAndShuffle();

@@ -99,6 +99,17 @@
     <section class="board-wrap">
       <canvas id="puzzleCanvas" aria-label="Puzzle board"></canvas>
 
+      <div id="loadingOverlay" class="loading-overlay" hidden>
+        <div class="loading-card">
+          <div class="loading-spinner" aria-hidden="true"></div>
+          <div class="loading-text">
+            <div class="loading-title">Loading photo</div>
+            <div class="loading-sub">Shuffling tiles…</div>
+          </div>
+        </div>
+      </div>
+
+
       <!-- Hover sculpture controls -->
       <div class="orb-wrap" aria-label="Quick controls">
         <button id="orbBtn" type="button" class="orb" aria-label="Open controls" aria-expanded="false">
@@ -108,10 +119,36 @@
         <div id="orbMenu" class="orb-menu" role="menu" aria-label="Controls">
           <button id="shuffleBtn" type="button" class="orb-action" role="menuitem">Shuffle</button>
           <button id="pauseBtn" type="button" class="orb-action" role="menuitem">Pause</button>
+          <button id="infoBtn" type="button" class="orb-action" role="menuitem">How To</button>
         </div>
       </div>
     </section>
   </main>
+
+  <!-- How-To Modal -->
+<div id="howtoOverlay" class="howto-overlay" hidden>
+  <div class="howto-card" role="dialog" aria-modal="true" aria-labelledby="howtoTitle">
+    <div class="howto-head">
+      <h2 id="howtoTitle" class="howto-title">How to play</h2>
+      <button id="howtoCloseBtn" type="button" class="howto-x" aria-label="Close">✕</button>
+    </div>
+
+    <div class="howto-body">
+      <p>Drag pieces to swap. Build groups by matching neighbors.</p>
+      <ul>
+        <li><b>Low Vision</b> loads high contrast images.</li>
+        <li><b>Tone</b> and <b>Vibe</b> guide you as you get closer.</li>
+        <li><b>Titles</b> speaks the photo title when you solve.</li>
+      </ul>
+      <p class="howto-tip">Tip: Use the orb button anytime for controls and this help screen.</p>
+    </div>
+
+    <div class="howto-actions">
+      <button id="howtoGotItBtn" type="button" class="pill-btn howto-gotit">Got it</button>
+    </div>
+  </div>
+</div>
+
 
   <script src="app.js"></script>
 </body>
