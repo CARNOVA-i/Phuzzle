@@ -630,6 +630,20 @@ body.lv #puzzleCanvas{
   .etched-stats .dot{
     display: none; /* stops ugly mid wrap dots */
   }
+
+    .orb{
+    width: 48px;
+    height: 48px;
+    font-size: 18px;
+  }
+
+  .orb::before{
+    inset: -14px; /* shrink glow radius proportionally */
+  }
+
+  .orb-wrap{
+    bottom: 10px;
+  }
 }
 
 
