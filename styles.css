@@ -644,6 +644,14 @@ body.lv #puzzleCanvas{
   .orb-wrap{
     bottom: 10px;
   }
+
+   .splash-pill{
+    width: min(92%, 520px);
+    text-align: center;
+    white-space: normal;
+    line-height: 1.2;
+    padding: 10px 16px;
+  }
 }
 
 
@@ -950,4 +958,15 @@ body.lv #puzzleCanvas{
 
 .board-wrap.is-loading #puzzleCanvas{
   filter: blur(10px) saturate(1.15) brightness(0.85);
+}
+
+.splash-pill{
+  position: absolute;
+  left: 50%;
+  top: 55%;
+  transform: translate(-50%, -50%);
+  z-index: 130;
+
+  pointer-events: none;
+  white-space: nowrap;
 }

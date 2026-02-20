@@ -149,6 +149,8 @@ const howtoOverlay = document.getElementById("howtoOverlay");
 const howtoGotItBtn = document.getElementById("howtoGotItBtn");
 const howtoCloseBtn = document.getElementById("howtoCloseBtn");
 const loadingOverlay = document.getElementById("loadingOverlay");
+const splashPill = document.getElementById("splashPill");
+
 
 
 
@@ -180,6 +182,11 @@ let confettiParticles = [];
 let confettiActive = false;
 let dpr = Math.max(1, window.devicePixelRatio || 1);
 let currentImage = null; // { src, label }
+let hasStarted = false;
+
+const splashImg = new Image();
+splashImg.src = "assets/images/icon.jpg"; // adjust path to your logo
+
 
 const lockedTiles = new Set();
 
@@ -231,7 +238,7 @@ let loadingStartTime = 0;
 function showLoading(text1 = "Loading photo", text2 = "Shuffling tiles…"){
   if (!loadingOverlay) return;
 
-  loaderShownAt = performance.now();
+  loadingStartTime = performance.now();
 
   const t = loadingOverlay.querySelector(".loading-title");
   const s = loadingOverlay.querySelector(".loading-sub");
@@ -245,7 +252,7 @@ function showLoading(text1 = "Loading photo", text2 = "Shuffling tiles…"){
 function hideLoading(){
   if (!loadingOverlay) return;
 
-  const elapsed = performance.now() - loaderShownAt;
+  const elapsed = performance.now() - loadingStartTime;
   const wait = Math.max(0, LOADER_MIN_MS - elapsed);
 
   setTimeout(() => {
@@ -579,6 +586,7 @@ collectionMenu.addEventListener("click", (e) => {
 
   photoIndex = 0;
   toggleCollection(false);
+  hasStarted = true;
   loadCurrentPhotoAndShuffle();
 });
 
@@ -1385,44 +1393,60 @@ function drawSolveOverlay(size) {
 function draw() {
   const size = canvas.width / dpr;
   ctx.clearRect(0, 0, size, size);
+
+  // 1) Splash state (before user starts)
+  if (!hasStarted) {
+  splashPill && (splashPill.hidden = false);
+  drawSplashScreen(size);
+  return;
+}
+
+if (splashPill) splashPill.hidden = true;
+
+
+  // 2) If image isn't ready yet, keep board visually stable
+  // (your loading overlay handles the UX now)
   if (!imageLoaded) {
-    ctx.fillStyle = "#f0f0f0";
+    // Optional: a subtle dark glass backing instead of white flash
+    ctx.fillStyle = "rgba(255,255,255,0.035)";
     ctx.fillRect(0, 0, size, size);
-    ctx.fillStyle = "#667085";
-    ctx.font = "18px Segoe UI";
-    ctx.textAlign = "center";
-    ctx.fillText("Loading photo...", size / 2, size / 2);
     return;
   }
 
+  // 3) Draw all non-dragged tiles
   for (let i = 0; i < board.length; i += 1) {
     const tileId = board[i];
     if (dragState.active && dragState.memberTileSet.has(tileId)) continue;
+
     const x = (i % cols) * tileWidth;
     const y = Math.floor(i / cols) * tileHeight;
     drawTileAt(tileId, x, y, 1);
   }
 
+  // 4) Draw the dragged cluster on top (slightly translucent)
   if (dragState.active) {
     for (const tileId of dragState.memberTileIds) {
       const offset = dragState.offsetsByTileId.get(tileId);
       if (!offset) continue;
+
       const x = dragState.x + offset.dCol * tileWidth - tileWidth / 2;
       const y = dragState.y + offset.dRow * tileHeight - tileHeight / 2;
       drawTileAt(tileId, x, y, 0.86);
     }
   }
 
+  // 5) Locks (skip dragged tiles)
   for (let i = 0; i < board.length; i += 1) {
     if (dragState.active && dragState.memberTileSet.has(board[i])) continue;
     drawLockOverlayForTile(i);
   }
 
+  // 6) Grid + solve overlay
   drawClusterAwareGrid(size);
   drawSolveOverlay(size);
 
-  
-    if (isNovaPhoto()) {
+  // 7) Watermarks (only after solve/solve anim inside those functions)
+  if (isNovaPhoto()) {
     drawNovaWatermark(size);
   } else if (isCarsonPhoto()) {
     drawCarsonWatermark(size);
@@ -1430,13 +1454,60 @@ function draw() {
     drawGraceWatermark(size);
   }
 
-  
-
-
-  
-
+  // 8) Confetti last
   drawConfetti(size);
 }
+
+
+
+function roundRect(ctx, x, y, w, h, r) {
+  const rr = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + rr, y);
+  ctx.arcTo(x + w, y, x + w, y + h, rr);
+  ctx.arcTo(x + w, y + h, x, y + h, rr);
+  ctx.arcTo(x, y + h, x, y, rr);
+  ctx.arcTo(x, y, x + w, y, rr);
+  ctx.closePath();
+}
+
+
+
+
+
+function drawSplashScreen(size) {
+  ctx.clearRect(0, 0, size, size);
+
+  if (splashImg && splashImg.complete) {
+    const maxW = size * 0.85;
+    const maxH = size * 0.65;
+
+    const iw = splashImg.naturalWidth || 1;
+    const ih = splashImg.naturalHeight || 1;
+    const scale = Math.min(maxW / iw, maxH / ih);
+
+    const w = iw * scale;
+    const h = ih * scale;
+
+    const x = (size - w) / 2;
+    const y = (size - h) / 2;
+
+    ctx.save();
+    ctx.globalAlpha = 0.95;
+    ctx.shadowColor = "rgba(120, 200, 255, 0.55)";
+    ctx.shadowBlur = size * 0.05;
+    ctx.drawImage(splashImg, x, y, w, h);
+    ctx.restore();
+  } else {
+    ctx.fillStyle = "rgba(0,0,0,0.12)";
+    ctx.fillRect(0, 0, size, size);
+  }
+}
+
+
+
+
+
 
 function boardIndexFromPoint(x, y) {
   if (x < 0 || y < 0) return -1;
@@ -1945,6 +2016,7 @@ function loadCurrentPhotoAndShuffle() {
 
 
 function stepPhoto(delta) {
+  hasStarted = true;
   const list = getActivePhotoList();
   if (!list.length) return;
   const total = list.length;
@@ -1953,6 +2025,7 @@ function stepPhoto(delta) {
 }
 
 function randomPhoto() {
+  hasStarted = true;
   const list = getActivePhotoList();
   if (list.length <= 1) {
     loadCurrentPhotoAndShuffle();
@@ -1991,6 +2064,7 @@ lvBtn?.addEventListener("click", () => {
 
   // Always restart at first image in the active list and reload immediately
   photoIndex = 0;
+  hasStarted = true;
   loadCurrentPhotoAndShuffle();
 });
 
@@ -2053,4 +2127,6 @@ if (!localStorage.getItem(HOWTO_SEEN_KEY)) {
   openHowTo();
 }
 
-loadCurrentPhotoAndShuffle();
+resizeCanvas();
+draw();
+
