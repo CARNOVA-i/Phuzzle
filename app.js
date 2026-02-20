@@ -519,6 +519,29 @@ function pauseResumeTimer() {
   startTime = Date.now() - elapsedMs;
 }
 
+
+const SPLASH_SEEN_KEY = "phuzzle_splash_seen_v1";
+
+function startGame({ auto = false } = {}) {
+  if (hasStarted) return;
+
+  hasStarted = true;
+
+  // Mark splash as seen (so returning users can skip it if you want)
+  try { localStorage.setItem(SPLASH_SEEN_KEY, "1"); } catch {}
+
+  // Ensure we actually load an image now that we are "started"
+  loadCurrentPhotoAndShuffle();
+
+  // If you want How-To to auto-open only when the game begins (not during splash):
+  if (!localStorage.getItem(HOWTO_SEEN_KEY)) {
+    openHowTo();
+  }
+
+  draw();
+}
+
+
 function applyDifficulty(size) {
   setDifficulty(size);
   resizeCanvas();
@@ -586,7 +609,7 @@ collectionMenu.addEventListener("click", (e) => {
 
   photoIndex = 0;
   toggleCollection(false);
-  hasStarted = true;
+  startGame();
   loadCurrentPhotoAndShuffle();
 });
 
@@ -2104,9 +2127,10 @@ speakBtn?.addEventListener("click", () => {
 
 
 
-prevPhotoBtn.addEventListener("click", () => stepPhoto(-1));
-nextPhotoBtn.addEventListener("click", () => stepPhoto(1));
-randomPhotoBtn.addEventListener("click", randomPhoto);
+prevPhotoBtn.addEventListener("click", () => { startGame(); stepPhoto(-1); });
+nextPhotoBtn.addEventListener("click", () => { startGame(); stepPhoto(1); });
+randomPhotoBtn.addEventListener("click", () => { startGame(); randomPhoto(); });
+
 shuffleBtn.addEventListener("click", shuffleBoard);
 pauseBtn.addEventListener("click", pauseResumeTimer);
 
@@ -2123,10 +2147,11 @@ applyDifficulty(difficultyBtn?.textContent?.trim() || "4x4");
 updateStats();
 updateBestLabel();
 
-if (!localStorage.getItem(HOWTO_SEEN_KEY)) {
-  openHowTo();
-}
-
 resizeCanvas();
-draw();
 
+const splashSeen = localStorage.getItem(SPLASH_SEEN_KEY) === "1";
+if (splashSeen) {
+  startGame({ auto: true });
+} else {
+  draw(); // show splash
+}
