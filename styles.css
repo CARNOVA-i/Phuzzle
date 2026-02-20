@@ -645,12 +645,36 @@ body.lv #puzzleCanvas{
     bottom: 10px;
   }
 
-   .splash-pill{
-    width: min(92%, 520px);
-    text-align: center;
+  .splash-pill{
+    top: 52%;
+    width: min(90%, 420px);
     white-space: normal;
-    line-height: 1.2;
-    padding: 10px 16px;
+    text-align: center;
+    line-height: 1.15;
+    padding: 10px 14px;
+  }
+
+  .hud{
+    padding: 8px 8px;
+    border-radius: 22px;
+  }
+
+  .ribbon{
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .a11y-row{
+    padding-top: 6px;
+    gap: 8px;
+  }
+
+  .etched-stats{
+    padding-top: 6px;
+  }
+
+  .app{
+    padding-top: 6px;
   }
 }
 
