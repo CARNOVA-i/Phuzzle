@@ -646,23 +646,25 @@ body.lv #puzzleCanvas{
   }
 
   .splash-pill{
-    box-sizing: border-box;
+    position: absolute;
+    left: 50%;
+    top: 55%;
+    transform: translate(-50%, -50%);
+    z-index: 130;
+    pointer-events: none;
 
+    box-sizing: border-box;
     width: min(90vw, 420px);
     padding: 12px 16px;
 
     font-size: clamp(15px, 4vw, 20px);
     line-height: 1.25;
 
+    text-align: center;
+
     white-space: normal;
     overflow-wrap: anywhere;
     word-break: break-word;
-
-    text-align: center;
-    white-space: normal;
-    overflow: visible;        /* stop clipping */
-    text-overflow: clip;      /* stop ellipsis behavior */
-                
   }
 
   .hud{
@@ -995,13 +997,4 @@ body.lv #puzzleCanvas{
   filter: blur(10px) saturate(1.15) brightness(0.85);
 }
 
-.splash-pill{
-  position: absolute;
-  left: 50%;
-  top: 55%;
-  transform: translate(-50%, -50%);
-  z-index: 130;
 
-  pointer-events: none;
-  white-space: nowrap;
-}

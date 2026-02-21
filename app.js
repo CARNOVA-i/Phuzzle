@@ -190,7 +190,9 @@ splashImg.onerror = () => { console.warn("Splash logo failed to load:", splashIm
 
 // Use a filename that actually exists, and keep casing exact.
 // I recommend a PNG for best mobile compatibility.
-splashImg.src = "assets/images/icon.png";
+const splashUrl = new URL("assets/images/icon.png", document.baseURI).href;
+console.log("Splash URL:", splashUrl);
+splashImg.src = splashUrl;
 
 
 const lockedTiles = new Set();
