@@ -1015,7 +1015,7 @@ body.lv #puzzleCanvas{
 @media (max-width: 520px){
   .orb-wrap{
     margin-top: 14px;              /* moves the whole orb cluster down */
-    transform: scale(0.92);        /* shrink a bit */
+    transform: scale(0.80);        /* shrink a bit */
     transform-origin: top center;  /* scale from the top so it doesn’t drift upward */
   }
 }
