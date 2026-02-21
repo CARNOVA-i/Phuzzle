@@ -196,7 +196,7 @@ splashImg.src = "assets/images/icon.png";
 const lockedTiles = new Set();
 
 
-const LOADER_MIN_MS = 1200; // adjust this (milliseconds)
+const LOADER_MIN_MS = 900; // adjust this (milliseconds)
 const boardWrap = document.querySelector(".board-wrap");
 
 
@@ -1526,22 +1526,22 @@ function drawSplashScreen(size) {
     ctx.shadowBlur = size * 0.05;
     ctx.drawImage(splashImg, x, y, w, h);
     ctx.restore();
-  }  
-  
-  else {
-    ctx.fillStyle = "rgba(255,255,255,0.04)";
-    ctx.fillRect(0, 0, size, size);
+  }  else {
+      ctx.fillStyle = "rgba(255,255,255,0.04)";
+      ctx.fillRect(0, 0, size, size);
 
-    ctx.save();
-    ctx.font = `800 ${Math.max(34, Math.floor(size * 0.10))}px ui-sans-serif, system-ui, "Segoe UI", sans-serif`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.shadowColor = "rgba(120,200,255,0.55)";
-    ctx.shadowBlur = size * 0.06;
-    ctx.fillStyle = "rgba(236,242,255,0.90)";
-    ctx.fillText("PHUZZLE", size / 2, size * 0.40);
-    ctx.restore();
-  }
+      ctx.save();
+      ctx.font = `800 ${Math.max(34, Math.floor(size * 0.10))}px ui-sans-serif, system-ui, "Segoe UI", sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.shadowColor = "rgba(120,200,255,0.55)";
+      ctx.shadowBlur = size * 0.06;
+      ctx.fillStyle = "rgba(236,242,255,0.90)";
+      ctx.fillText("PHUZZLE", size / 2, size * 0.40);
+      ctx.restore();
+    }
+  
+  
 }
 
 
