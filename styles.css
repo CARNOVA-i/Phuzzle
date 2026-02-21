@@ -646,12 +646,19 @@ body.lv #puzzleCanvas{
   }
 
   .splash-pill{
-    top: 52%;
-    width: min(90%, 420px);
+    box-sizing: border-box;
+
+    width: min(90vw, 420px);
+    padding: 12px 16px;
+
+    font-size: clamp(15px, 4vw, 20px);
+    line-height: 1.25;
+
     white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+
     text-align: center;
-    line-height: 1.15;
-    padding: 10px 14px;
   }
 
   .hud{

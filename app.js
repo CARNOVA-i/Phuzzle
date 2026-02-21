@@ -185,7 +185,12 @@ let currentImage = null; // { src, label }
 let hasStarted = false;
 
 const splashImg = new Image();
-splashImg.src = "assets/images/icon.jpg"; // adjust path to your logo
+splashImg.onload = () => { if (!hasStarted) draw(); };
+splashImg.onerror = () => { console.warn("Splash logo failed to load:", splashImg.src); if (!hasStarted) draw(); };
+
+// Use a filename that actually exists, and keep casing exact.
+// I recommend a PNG for best mobile compatibility.
+splashImg.src = "assets/images/icon.png";
 
 
 const lockedTiles = new Set();
@@ -1501,7 +1506,7 @@ function roundRect(ctx, x, y, w, h, r) {
 function drawSplashScreen(size) {
   ctx.clearRect(0, 0, size, size);
 
-  if (splashImg && splashImg.complete) {
+  if (splashImg && splashImg.complete && splashImg.naturalWidth > 0) {
     const maxW = size * 0.85;
     const maxH = size * 0.65;
 
@@ -1521,9 +1526,21 @@ function drawSplashScreen(size) {
     ctx.shadowBlur = size * 0.05;
     ctx.drawImage(splashImg, x, y, w, h);
     ctx.restore();
-  } else {
-    ctx.fillStyle = "rgba(0,0,0,0.12)";
+  }  
+  
+  else {
+    ctx.fillStyle = "rgba(255,255,255,0.04)";
     ctx.fillRect(0, 0, size, size);
+
+    ctx.save();
+    ctx.font = `800 ${Math.max(34, Math.floor(size * 0.10))}px ui-sans-serif, system-ui, "Segoe UI", sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.shadowColor = "rgba(120,200,255,0.55)";
+    ctx.shadowBlur = size * 0.06;
+    ctx.fillStyle = "rgba(236,242,255,0.90)";
+    ctx.fillText("PHUZZLE", size / 2, size * 0.40);
+    ctx.restore();
   }
 }
 
@@ -1914,10 +1931,17 @@ function moveDrag(e) {
     const dx = e.clientX - pendingDrag.startClientX;
     const dy = e.clientY - pendingDrag.startClientY;
 
-    // Favor scroll unless it’s more horizontal than vertical
+    // On touch screens, favor grabbing tiles over scrolling.
+  if (e.pointerType !== "touch") {
+    // On mouse/pen, keep the old bias if you want it.
     if (Math.abs(dy) > Math.abs(dx)) return;
+  }
 
-    if (Math.hypot(dx, dy) < DRAG_THRESHOLD_PX) return;
+  const threshold = e.pointerType === "touch"
+    ? DRAG_THRESHOLD_PX * 0.6
+    : DRAG_THRESHOLD_PX;
+
+  if (Math.hypot(dx, dy) < threshold) return;
 
     canvas.setPointerCapture(e.pointerId);
     e.preventDefault();
