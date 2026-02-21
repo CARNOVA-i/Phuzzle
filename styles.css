@@ -662,7 +662,7 @@ body.lv #puzzleCanvas{
     white-space: normal;
     overflow: visible;        /* stop clipping */
     text-overflow: clip;      /* stop ellipsis behavior */
-    min-width: 0;             
+                
   }
 
   .hud{
