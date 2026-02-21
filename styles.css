@@ -414,6 +414,7 @@ body {
 }
 
 
+
 /* Canvas stays premium */
 canvas {
   touch-action: none;
@@ -632,8 +633,8 @@ body.lv #puzzleCanvas{
   }
 
     .orb{
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     font-size: 18px;
   }
 
@@ -642,15 +643,15 @@ body.lv #puzzleCanvas{
   }
 
   .orb-wrap{
-    bottom: 10px;
+    bottom: 8px;
   }
 
   .splash-pill{
     position: absolute;
     left: 50%;
-    top: 55%;
+    top: 10%;
     transform: translate(-50%, -50%);
-    z-index: 130;
+    z-index: 7000;
     pointer-events: none;
 
     box-sizing: border-box;
@@ -663,8 +664,8 @@ body.lv #puzzleCanvas{
     text-align: center;
 
     white-space: normal;
-    overflow-wrap: anywhere;
-    word-break: break-word;
+    overflow-wrap: normal;
+    
   }
 
   .hud{
@@ -788,9 +789,6 @@ body.lv #puzzleCanvas{
   touch-action: none;
 }
 
-.board-wrap {
-  overflow: hidden;
-}
 
 
 
@@ -998,3 +996,18 @@ body.lv #puzzleCanvas{
 }
 
 
+#splashPill{
+  position: absolute;
+  left: 50%;
+  top: 58%;                 /* tweak this value */
+  transform: translate(-50%, -50%);
+  z-index: 20;
+
+  width: min(90vw, 420px);
+  box-sizing: border-box;
+  text-align: center;
+
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
