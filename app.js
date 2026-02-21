@@ -1509,8 +1509,8 @@ function drawSplashScreen(size) {
   ctx.clearRect(0, 0, size, size);
 
   if (splashImg && splashImg.complete && splashImg.naturalWidth > 0) {
-    const maxW = size * 0.85;
-    const maxH = size * 0.65;
+    const maxW = size * 0.95;
+    const maxH = size * 0.85;
 
     const iw = splashImg.naturalWidth || 1;
     const ih = splashImg.naturalHeight || 1;
