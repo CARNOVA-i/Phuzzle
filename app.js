@@ -84,13 +84,30 @@ const COLLECTIONS = {
 
 
   ai: [
-  { src: "assets/images/ai/nova_AI1.jpg", label: "Rupture" },
-  { src: "assets/images/ai/nova_AI2.jpg", label: "Procession" },
-  { src: "assets/images/ai/nova_AI3.jpg", label: "Fragment" },
-  { src: "assets/images/ai/nova_AI4.jpg", label: "Inversion" },
-  { src: "assets/images/ai/nova_AI5.jpg", label: "Awakening" },
-  { src: "assets/images/ai/nova_AI6.jpg", label: "Threshold" },
-],
+    { src: "assets/images/ai/nova_AI1.jpg", label: "Rupture" },
+    { src: "assets/images/ai/nova_AI2.jpg", label: "Procession" },
+    { src: "assets/images/ai/nova_AI3.jpg", label: "Fragment" },
+    { src: "assets/images/ai/nova_AI4.jpg", label: "Inversion" },
+    { src: "assets/images/ai/nova_AI5.jpg", label: "Awakening" },
+    { src: "assets/images/ai/nova_AI6.jpg", label: "Threshold" },
+  ],
+
+
+  aiMacro: [
+    { src: "assets/images/ai_macro/nova_AIM1.jpg", label: "Chromatic Hive" },
+    { src: "assets/images/ai_macro/nova_AIM2.jpg", label: "Ember Runoff" },
+    { src: "assets/images/ai_macro/nova_AIM3.jpg", label: "Molten Cathedral" },
+    { src: "assets/images/ai_macro/nova_AIM4.jpg", label: "Scar Terrain" },
+    { src: "assets/images/ai_macro/nova_AIM5.jpg", label: "Celestial Vault" },
+    { src: "assets/images/ai_macro/nova_AIM6.jpg", label: "Orbital Rift" },
+    { src: "assets/images/ai_macro/nova_AIM7.jpg", label: "Emerald Canopy" },
+    { src: "assets/images/ai_macro/nova_AIM8.jpg", label: "Microcosmic Collision" },
+    { src: "assets/images/ai_macro/nova_AIM9.jpg", label: "Vascular Atlas" },
+    { src: "assets/images/ai_macro/nova_AIM10.jpg", label: "Tactile Dunes" },
+    { src: "assets/images/ai_macro/nova_AIM11.jpg", label: "Luminous Assembly" },
+    { src: "assets/images/ai_macro/nova_AIM12.jpg", label: "Obsidian hair Spire" },
+
+  ]
 
 };
 
@@ -150,6 +167,7 @@ const howtoGotItBtn = document.getElementById("howtoGotItBtn");
 const howtoCloseBtn = document.getElementById("howtoCloseBtn");
 const loadingOverlay = document.getElementById("loadingOverlay");
 const splashPill = document.getElementById("splashPill");
+
 
 
 
