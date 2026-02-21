@@ -43,20 +43,19 @@
 
 * { box-sizing: border-box; }
 
-html, body {
-  height: 100%;
+html, body{
   margin: 0;
   padding: 0;
-  
+  height: auto;          /* key change */
+  min-height: 100%;
   overflow-x: hidden;
-  overflow-y: auto;
-  
-  overscroll-behavior: none;
-  -webkit-overflow-scrolling: auto;
+  overflow-y: auto;      /* allow wheel scroll */
+  overscroll-behavior-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-.app {
-  height: 100%;
+.app{
+  min-height: 100vh;
 }
 
 

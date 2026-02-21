@@ -233,7 +233,7 @@ const dragState = {
 };
 
 
-const DRAG_THRESHOLD_PX = 6; // try 8 to 14 (higher = less sensitive)
+const DRAG_THRESHOLD_PX = 14; // try 8 to 14 (higher = less sensitive)
 let pendingDrag = null;
 
 
