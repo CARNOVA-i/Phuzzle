@@ -659,6 +659,10 @@ body.lv #puzzleCanvas{
     word-break: break-word;
 
     text-align: center;
+    white-space: normal;
+    overflow: visible;        /* stop clipping */
+    text-overflow: clip;      /* stop ellipsis behavior */
+    min-width: 0;             
   }
 
   .hud{
