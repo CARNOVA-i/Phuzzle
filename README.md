@@ -73,7 +73,7 @@ Phuzzle follows semantic versioning:
 - Minor: UI/UX improvements or feature additions
 - Major: structural or gameplay changes
 
-Current release: **v1.7.0**
+Current release: **v1.8.0**
 
 ---
 
