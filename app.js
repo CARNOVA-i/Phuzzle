@@ -492,7 +492,7 @@ function setOrbOpen(open) {
   orbBtn.setAttribute("aria-expanded", open ? "true" : "false");
 
   if (open) {
-    portalOpenAbove(orbMenu, orbBtn, 14);
+    portalOpen(orbMenu, orbBtn, 14);
 
     requestAnimationFrame(() => {
       orbMenu.classList.add("open");
