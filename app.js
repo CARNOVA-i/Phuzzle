@@ -461,10 +461,49 @@ document.addEventListener("pointerdown", (e) => {
 
 
 
+function portalOpenAbove(menuEl, anchorBtn, gap = 12) {
+  if (!menuEl || !anchorBtn) return;
+
+  if (!portalState.has(menuEl)) {
+    portalState.set(menuEl, { parent: menuEl.parentNode, next: menuEl.nextSibling });
+    document.body.appendChild(menuEl);
+    menuEl.classList.add("menu-portal");
+  }
+
+  menuEl.style.right = "auto";
+  menuEl.style.bottom = "auto";
+
+  const r = anchorBtn.getBoundingClientRect();
+
+  // center on the orb button
+  menuEl.style.left = `${r.left + r.width / 2}px`;
+
+  // measure after it's in the body so we can place it ABOVE the button
+  requestAnimationFrame(() => {
+    const h = menuEl.offsetHeight || 0;
+    const top = Math.max(8, r.top - gap - h);
+    menuEl.style.top = `${top}px`;
+  });
+}
+
 function setOrbOpen(open) {
   if (!orbBtn || !orbMenu) return;
+
   orbBtn.setAttribute("aria-expanded", open ? "true" : "false");
-  orbMenu.classList.toggle("open", open);
+
+  if (open) {
+    portalOpenAbove(orbMenu, orbBtn, 14);
+
+    requestAnimationFrame(() => {
+      orbMenu.classList.add("open");
+    });
+  } else {
+    orbMenu.classList.remove("open");
+
+    setTimeout(() => {
+      portalClose(orbMenu);
+    }, 220);
+  }
 }
 
 function toggleOrb() {
