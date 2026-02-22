@@ -13,13 +13,13 @@
       <!-- Thin ambient ribbon -->
       <div class="ribbon">
 
-        <div class="ribbon-left">
-          <button id="prevPhotoBtn" type="button" class="icon-btn" aria-label="Previous photo">◀</button>
-          <button id="nextPhotoBtn" type="button" class="icon-btn" aria-label="Next photo">▶</button>
-          <button id="randomPhotoBtn" type="button" class="pill-btn" aria-label="Random photo">Random</button>
+        <div class="ribbon-left" style="grid-column: 1;">
+          <button id="hvNextBtn" type="button" class="pill-btn hv-next">
+            Next ▶
+          </button>
         </div>
 
-        <div class="collection">
+        <div class="collection" id="collectionWrap">
           <button
             id="collectionBtn"
             type="button"
@@ -43,6 +43,7 @@
             <button type="button" data-collection="animals" class="orb-action" role="menuitem">Animals</button>
             <button type="button" data-collection="ai" class="orb-action" role="menuitem">AI</button>
             <button type="button" data-collection="aiMacro" class="orb-action" role="menuitem">AI Macro</button>
+            <button type="button" data-collection="people" class="orb-action" role="menuitem">People</button>
 
           </div>
         </div>
@@ -76,24 +77,23 @@
 
       </div>
 
-      <!-- Etched stats (below ribbon, still above board) -->
-      <div class="etched-stats" aria-live="polite">
+      
+      <!-- A11y toggles row (now separate from stats) -->
         <div class="a11y-row" aria-label="Accessibility controls">
           <button id="lvBtn" type="button" class="pill-btn" aria-pressed="false">Low Vision: Off</button>
           <button id="toneBtn" type="button" class="pill-btn" aria-pressed="false">Tone: Off</button>
           <button id="vibeBtn" type="button" class="pill-btn" aria-pressed="false">Vibe: Off</button>
-          <button id="speakBtn" type="button" class="pill-btn" aria-pressed="false">
-            Titles: Off
-          </button>
-
+          <button id="speakBtn" type="button" class="pill-btn" aria-pressed="false">Titles: Off</button>
         </div>
 
-        <span id="movesLabel">Moves: 0</span>
-        <span class="dot">•</span>
-        <span id="timerLabel">Time: 00:00</span>
-        <span class="dot">•</span>
-        <span id="bestLabel">Best: --:--</span>
-      </div>
+        <!-- Stats pill (own slim capsule) -->
+        <div class="stats-pill" aria-live="polite">
+          <span id="movesLabel">Moves: 0</span>
+          <span class="dot">•</span>
+          <span id="timerLabel">Time: 00:00</span>
+          <span class="dot">•</span>
+          <span id="bestLabel">Best: --:--</span>
+        </div>
 
     </header>
 
@@ -123,6 +123,9 @@
         </button>
 
         <div id="orbMenu" class="orb-menu" role="menu" aria-label="Controls">
+          <button id="orbPrevBtn" type="button" class="orb-action" role="menuitem">Previous</button>
+          <button id="orbNextBtn" type="button" class="orb-action" role="menuitem">Next</button>
+          <button id="orbRandomBtn" type="button" class="orb-action" role="menuitem">Random</button>
           <button id="shuffleBtn" type="button" class="orb-action" role="menuitem">Shuffle</button>
           <button id="pauseBtn" type="button" class="orb-action" role="menuitem">Pause</button>
           <button id="infoBtn" type="button" class="orb-action" role="menuitem">How To</button>
@@ -156,6 +159,6 @@
 </div>
 
 
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script> <!-- type="module" lets app.js import stats.js -->
 </body>
 </html>

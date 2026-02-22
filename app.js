@@ -1,4 +1,4 @@
-
+import { statsBeginRun, statsEndRunOnSolve } from "./stats.js";
 
 
 
@@ -27,7 +27,14 @@ const COLLECTIONS = {
     { src: "assets/images/nature/carson_N7.jpg", label: "West coast sunset" },
     { src: "assets/images/nature/carson_N8.jpg", label: "Timeless swing" },
     { src: "assets/images/nature/carson_N9.jpg", label: "Nature, declared" },
-    { src: "assets/images/nature/carson_N10.jpg", label: "Lone mushroom" }
+    { src: "assets/images/nature/carson_N10.jpg", label: "Lone mushroom" },
+    { src: "assets/images/nature/grace_N1.jpg", label: "Alpine lake" },
+    { src: "assets/images/nature/grace_N2.jpg", label: "Mountain flowers" },
+    { src: "assets/images/nature/grace_N3.jpg", label: "Coreopsis tinctoria" },
+    { src: "assets/images/nature/grace_N4.jpg", label: "Cherry blossom" },
+    { src: "assets/images/nature/grace_N5.jpg", label: "forest mushrooms" },
+    { src: "assets/images/nature/grace_N6.jpg", label: "Forest stream" },
+    { src: "assets/images/nature/grace_N7.jpg", label: "Lonely forest mushroom" },
   ],
 
   buildings: [
@@ -46,13 +53,34 @@ const COLLECTIONS = {
     { src: "assets/images/detail/grace_06.jpg", label: "Mushroom city" },
     { src: "assets/images/detail/grace_07.jpg", label: "Lone mushroom" },
     { src: "assets/images/detail/grace_09.jpg", label: "Dewdrop detail" },
-    { src: "assets/images/detail/grace_10.jpg", label: "Moss dewdrop" }
+    { src: "assets/images/detail/grace_10.jpg", label: "Moss dewdrop" },
+    { src: "assets/images/detail/grace_D1.jpg", label: "Leaf scaffold" },
+    { src: "assets/images/detail/grace_D2.jpg", label: "Lizard claw macro" },
+    { src: "assets/images/detail/grace_D3.jpg", label: "Seed pod post flight" },
+    { src: "assets/images/detail/grace_D4.jpg", label: "Butterfly wing" },
+    { src: "assets/images/detail/grace_D5.jpg", label: "Butterfly lookout" },
+    { src: "assets/images/detail/grace_D6.jpg", label: "Butterfly kiss" },
+    { src: "assets/images/detail/grace_D7.jpg", label: "A snails lunch" },
+    { src: "assets/images/detail/grace_D8.jpg", label: "Dandelion macro" },
+    { src: "assets/images/detail/grace_D9.jpg", label: "Summer butterfly" },
+    { src: "assets/images/detail/grace_D10.jpg", label: "Flower detail" },
+    { src: "assets/images/detail/grace_D11.jpg", label: "Chill spider" },
+    { src: "assets/images/detail/grace_D12.jpg", label: "Tadpole" },
+    { src: "assets/images/detail/grace_D13.jpg", label: "Hungry crab" },
+    { src: "assets/images/detail/grace_D14.jpg", label: "Spider" },
+    { src: "assets/images/detail/grace_D15.jpg", label: "Ladybug on corn" },
+    { src: "assets/images/detail/grace_D16.jpg", label: "Ladybug on corn close-up" },
+    { src: "assets/images/detail/grace_D17.jpg", label: "Moss" },
+    { src: "assets/images/detail/grace_D18.jpg", label: "Leaf scaffold close-up" },
   ],
 
   animals: [
     { src: "assets/images/animals/grace_02.jpg", label: "Wild turkey" },
     { src: "assets/images/animals/carson_A1.jpg", label: "Tropical macaw" },
-    { src: "assets/images/animals/carson_A2.jpg", label: "Stranded jellyfish" }
+    { src: "assets/images/animals/carson_A2.jpg", label: "Stranded jellyfish" },
+    { src: "assets/images/animals/grace_A1.jpg", label: "Lizard skin" },
+    { src: "assets/images/animals/grace_A2.jpg", label: "Dragonfly" },
+    { src: "assets/images/animals/grace_A3.jpg", label: "Lizards gaze" },
   ],
 
   highvis: [
@@ -107,6 +135,11 @@ const COLLECTIONS = {
     { src: "assets/images/ai_macro/nova_AIM11.jpg", label: "Luminous Assembly" },
     { src: "assets/images/ai_macro/nova_AIM12.jpg", label: "Obsidian hair Spire" },
 
+  ],
+
+  people: [
+    { src: "assets/images/people/grace_P1.jpg", label: "Child's hand" },
+    { src: "assets/images/people/grace_P2.jpg", label: "Child's wonder" },
   ]
 
 };
@@ -167,6 +200,12 @@ const howtoGotItBtn = document.getElementById("howtoGotItBtn");
 const howtoCloseBtn = document.getElementById("howtoCloseBtn");
 const loadingOverlay = document.getElementById("loadingOverlay");
 const splashPill = document.getElementById("splashPill");
+const hvNextBtn = document.getElementById("hvNextBtn");
+const orbPrevBtn = document.getElementById("orbPrevBtn");
+const orbNextBtn = document.getElementById("orbNextBtn");
+const orbRandomBtn = document.getElementById("orbRandomBtn");
+const collectionWrap = document.getElementById("collectionWrap");
+
 
 
 
@@ -558,6 +597,7 @@ function startGame({ auto = false } = {}) {
   // Ensure we actually load an image now that we are "started"
   loadCurrentPhotoAndShuffle();
 
+
   // If you want How-To to auto-open only when the game begins (not during splash):
   if (!localStorage.getItem(HOWTO_SEEN_KEY)) {
     openHowTo();
@@ -920,6 +960,7 @@ function shuffleBoard() {
   stopSolveAnimation();
   recomputeClusters();
   resetTimerAndMoves();
+  statsBeginRun({ sizeKey: difficultyKey() });
   draw();
 }
 
@@ -1101,7 +1142,9 @@ ctx.shadowBlur = 0;
 ctx.lineWidth = 1.5;
 ctx.strokeStyle = "rgba(86, 204, 242, 0.75)";
 
-const inset = 4;
+const s = lowVisionMode ? 1.75 : 1.0;                 // size scale
+const inset = lowVisionMode ? 16 : 10;                // distance from tile corner
+
 const ix1 = x + inset;
 const iy1 = y + inset;
 const ix2 = x + tileWidth - inset;
@@ -1120,7 +1163,6 @@ ctx.stroke();
 // Corner brackets for signature feel
 ctx.lineWidth = 2;
 ctx.strokeStyle = "rgba(236, 242, 255, 0.55)";
-const s = 10;
 const m = 6;
 
 ctx.beginPath();
@@ -1156,19 +1198,44 @@ if (!bottomLocked && !leftLocked) {
 ctx.stroke();
 
 
-// Small lock glyph, but modern: minimal dot + shackle
-const lockX = x + 10;
-const lockY = y + 10;
-ctx.lineWidth = 2;
-ctx.strokeStyle = `rgba(17, 24, 39, ${0.85 * lockAlpha})`;
-ctx.beginPath();
-ctx.arc(lockX + 7, lockY + 6, 5, Math.PI, 0, false);
-ctx.stroke();
-ctx.strokeRect(lockX + 3, lockY + 6, 8, 8);
+// Lock glyph: scales + brightens in Low Vision
 
-ctx.fillStyle = `rgba(86, 204, 242, ${0.85 * lockAlpha})`;
+const lockX = x + inset;
+const lockY = y + inset;
+
+ctx.save();
+
+// Thicker + brighter in Low Vision
+ctx.lineWidth = (lowVisionMode ? 4 : 2) * s;
+ctx.lineCap = "round";
+ctx.lineJoin = "round";
+
+// Glow (helps a ton on busy images)
+ctx.shadowBlur = lowVisionMode ? 26 : 14;
+ctx.shadowColor = lowVisionMode
+  ? `rgba(255,255,255, ${0.55 * lockAlpha})`
+  : `rgba(86, 204, 242, ${0.45 * lockAlpha})`;
+
+// Outline color: pure white in LV, dark ink in normal
+ctx.strokeStyle = lowVisionMode
+  ? `rgba(255,255,255, ${1.0 * lockAlpha})`
+  : `rgba(17, 24, 39, ${0.85 * lockAlpha})`;
+
+// Shackle
 ctx.beginPath();
-ctx.arc(lockX + 7, lockY + 11, 1.6, 0, Math.PI * 2);
+ctx.arc(lockX + 7 * s, lockY + 6 * s, 5 * s, Math.PI, 0, false);
+ctx.stroke();
+
+// Body
+ctx.strokeRect(lockX + 3 * s, lockY + 6 * s, 8 * s, 8 * s);
+
+// Center dot: cyan in normal, bright white in LV
+ctx.fillStyle = lowVisionMode
+  ? `rgba(255,255,255, ${0.95 * lockAlpha})`
+  : `rgba(86, 204, 242, ${0.85 * lockAlpha})`;
+
+ctx.beginPath();
+ctx.arc(lockX + 7 * s, lockY + 11 * s, 1.8 * s, 0, Math.PI * 2);
 ctx.fill();
 
 ctx.restore();
@@ -2111,25 +2178,29 @@ function setPressed(btn, on, labelOn, labelOff){
 }
 
 lvBtn?.addEventListener("click", () => {
-  lowVisionMode = !lowVisionMode;
+
+  lowVisionMode = !lowVisionMode;   // ← toggle FIRST
 
   document.body.classList.toggle("lv", lowVisionMode);
   setPressed(lvBtn, lowVisionMode, "Low Vision: On", "Low Vision: Off");
 
-  if (lowVisionMode) {
-    // Save the user's current collection so we can restore it
-    previousCollection = currentCollection;
+  if (collectionWrap) {
+    collectionWrap.hidden = lowVisionMode;
+  }
 
-    // Force the visible collection label (optional but nice)
+  if (collectionWrap) {
+    collectionWrap.hidden = lowVisionMode;
+    if (lowVisionMode) toggleCollection(false);
+  }
+
+  if (lowVisionMode) {
+    previousCollection = currentCollection;
     currentCollection = "highvis";
-    collectionBtn.textContent = "Collection: High Vis";
   } else {
-    // Restore previous collection
     currentCollection = previousCollection || "all";
     collectionBtn.textContent = "Collection";
   }
 
-  // Always restart at first image in the active list and reload immediately
   photoIndex = 0;
   hasStarted = true;
   loadCurrentPhotoAndShuffle();
@@ -2142,10 +2213,15 @@ howtoOverlay?.addEventListener("click", () => {
 });
 
 
+orbPrevBtn?.addEventListener("click", () => { startGame(); stepPhoto(-1); });
+orbNextBtn?.addEventListener("click", () => { startGame(); stepPhoto(1); });
+orbRandomBtn?.addEventListener("click", () => { startGame(); randomPhoto(); });
 
 
-
-
+hvNextBtn?.addEventListener("click", () => {
+  startGame();
+  stepPhoto(1);
+});
 
 
 
@@ -2171,9 +2247,7 @@ speakBtn?.addEventListener("click", () => {
 
 
 
-prevPhotoBtn.addEventListener("click", () => { startGame(); stepPhoto(-1); });
-nextPhotoBtn.addEventListener("click", () => { startGame(); stepPhoto(1); });
-randomPhotoBtn.addEventListener("click", () => { startGame(); randomPhoto(); });
+
 
 shuffleBtn.addEventListener("click", shuffleBoard);
 pauseBtn.addEventListener("click", pauseResumeTimer);

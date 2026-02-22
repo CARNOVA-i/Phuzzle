@@ -1,4 +1,8 @@
-:root {
+/* =========================
+   Phuzzle styles.css (clean)
+   ========================= */
+
+:root{
   color-scheme: dark;
 
   --bg0: #070a10;
@@ -7,59 +11,31 @@
   --ink: rgba(236, 242, 255, 0.92);
   --muted: rgba(236, 242, 255, 0.62);
 
-  --glass: rgba(255, 255, 255, 0.06);
-  --glass2: rgba(255, 255, 255, 0.085);
-  --border: rgba(255, 255, 255, 0.14);
-
-  --shadow: rgba(0, 0, 0, 0.55);
-  --shadow-soft: rgba(0, 0, 0, 0.35);
-
-  --radius: 18px;
-}
-
-:root{
   --glass-bg: rgba(255,255,255,0.075);
   --glass-border: rgba(255,255,255,0.14);
   --glass-highlight: rgba(255,255,255,0.06);
   --glass-shadow: rgba(0,0,0,0.55);
   --glass-blur: 26px;
   --glass-sat: 175%;
+
+  --radius: 18px;
 }
 
-/* Shared frosted panel */
-.glass-panel{
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
-
-  border: 1px solid var(--glass-border);
-  box-shadow:
-    0 24px 60px var(--glass-shadow),
-    inset 0 1px 0 var(--glass-highlight);
-
-  border-radius: 16px;
-}
-
-
-* { box-sizing: border-box; }
+/* Base */
+*{ box-sizing: border-box; }
 
 html, body{
   margin: 0;
   padding: 0;
-  height: auto;          /* key change */
+  height: auto;
   min-height: 100%;
   overflow-x: hidden;
-  overflow-y: auto;      /* allow wheel scroll */
+  overflow-y: auto;
   overscroll-behavior-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 
-.app{
-  min-height: 100vh;
-}
-
-
-body {
+body{
   font-family: ui-sans-serif, system-ui, "Segoe UI", Tahoma, sans-serif;
   color: var(--ink);
   background:
@@ -68,100 +44,23 @@ body {
     linear-gradient(180deg, var(--bg1), var(--bg0) 60%, #05060a);
 }
 
-.app {
+.app{
+  min-height: 100vh;
   max-width: 1100px;
   margin: 0 auto;
   padding: 12px;
 }
 
-/* Make the top HUD feel like the orb pills */
-.hud{
-  max-width: 820px;
-  width: calc(100% - 28px);
-  margin: 14px auto 10px;
-  padding: 10px 12px;
-
-  background: rgba(255,255,255,0.07);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 999px;
-
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.04),
-    0 18px 55px rgba(0,0,0,0.55);
-}
-
-
-.ribbon {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  z-index: 10;
-
-  padding: 10px 10px;
-  border-radius: 999px;
-
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.10);
-  backdrop-filter: blur(18px) saturate(150%);
-  box-shadow:
-    0 18px 50px rgba(0,0,0,0.28),
-    inset 0 1px 0 rgba(255,255,255,0.05);
-}
-
-.ribbon-left,
-.ribbon-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-
-#collectionMenu button:hover{
-  background: rgba(255,255,255,0.14);
-  transform: translateY(-1px);
-}
-
-#collectionMenu button:active{
-  transform: translateY(1px);
-}
-
-
-
-.dropdown-menu {
-  position: absolute;
-  left: 50%;
-  top: calc(100% + 10px);
-  transform: translateX(-50%) translateY(10px);
-  opacity: 0;
-  pointer-events: none;
-  display: grid;
-  gap: 10px;
-  transition: opacity 160ms ease, transform 180ms ease;
-  z-index: 1002;
-}
-
-.dropdown-menu.open {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-  pointer-events: auto;
-}
-
-
-.hud{ position: relative; z-index: 1000; }
-
-
+/* Buttons */
 .icon-btn,
 .pill-btn,
-.select-pill {
+.select-pill{
   font: inherit;
   color: var(--ink);
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.12);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: 999px;
   height: 40px;
   padding: 0 12px;
@@ -171,7 +70,7 @@ body {
   transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
 }
 
-.icon-btn {
+.icon-btn{
   width: 44px;
   padding: 0;
   display: grid;
@@ -180,71 +79,212 @@ body {
 
 .icon-btn:hover,
 .pill-btn:hover,
-.select-pill:hover {
+.select-pill:hover{
   background: rgba(255,255,255,0.085);
   border-color: rgba(255,255,255,0.18);
   transform: translateY(-1px);
 }
 
 .icon-btn:active,
-.pill-btn:active {
-  transform: translateY(0px);
+.pill-btn:active{
+  transform: translateY(0);
 }
 
 .icon-btn:focus-visible,
 .pill-btn:focus-visible,
-.select-pill:focus-visible {
+.select-pill:focus-visible{
   outline: none;
   border-color: rgba(86, 204, 242, 0.7);
   box-shadow:
     0 0 0 3px rgba(86, 204, 242, 0.18),
-    0 12px 26px rgba(0, 0, 0, 0.32),
+    0 12px 26px rgba(0,0,0,0.32),
     inset 0 1px 0 rgba(255,255,255,0.04);
 }
 
-.hud button:not(.orb-action),
-.hud .pill-btn{
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.14);
-  border-radius: 999px;
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.04),
-    0 8px 20px rgba(0,0,0,0.35);
-}
-
+/* HUD container */
 .hud{
+  max-width: 820px;
+  width: calc(100% - 28px);
+  margin: 12px auto 6px;
+
+  padding: 14px 16px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 28px;
+
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
   box-shadow:
     inset 0 0 0 1px rgba(255,255,255,0.04),
     0 18px 55px rgba(0,0,0,0.55),
     0 0 32px rgba(120,180,255,0.08);
+
+  position: relative;
+  z-index: 1000;
 }
 
+/* Top ribbon: Collection left, Difficulty right */
+.ribbon{
+  width: 100%;
+  max-width: 760px;
 
-/* Etched stats */
-.etched-stats {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+
+  padding: 8px 10px;
+  border-radius: 999px;
+
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.10);
+
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+
+  box-shadow:
+    0 18px 50px rgba(0,0,0,0.28),
+    inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+/* Put BOTH in the left slot. Only one will show at a time. */
+.ribbon{
+  grid-template-columns: auto 1fr auto; /* left, spacer, right */
+}
+
+.ribbon-left{ 
+  grid-column: 1; 
+  justify-self: start; 
+}
+
+#collectionWrap{
+  grid-column: 1;
+  justify-self: start;
+}
+
+/* Default: show Collection, hide Next */
+#hvNextBtn{ display: none; }
+#collectionWrap{ display: flex; }
+
+/* Low Vision: show Next, hide Collection */
+body.lv #hvNextBtn{ display: inline-flex; }
+body.lv #collectionWrap{ display: none; }
+
+
+/* IMPORTANT: this assumes your ribbon children are:
+   [collection] [spacer (optional)] [ribbon-right]
+   We simulate the spacer with the 1fr middle column by placing
+   collection in col 1 and ribbon-right in col 3.
+*/
+.collection{ grid-column: 1; justify-self: start; display: flex; align-items: center; }
+.ribbon-right{ grid-column: 3; justify-self: end; display: flex; align-items: center; gap: 8px; }
+
+/* A11y row */
+.a11y-row{
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 10px;
-  padding: 10px 0 2px 0;
+  flex-wrap: wrap;
+}
+
+/* Stats pill */
+.stats-pill{
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+
+  padding: 8px 16px;
+  border-radius: 999px;
+
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10);
+
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+
+  box-shadow:
+    0 14px 40px rgba(0,0,0,0.30),
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    inset 0 -1px 0 rgba(0,0,0,0.35);
+
   color: var(--muted);
-  letter-spacing: 0.4px;
-  font-weight: 650;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.stats-pill .dot{ opacity: 0.35; }
+
+/* Low Vision mode */
+body.lv{
+  --ink: rgba(255,255,255,0.98);
+  --muted: rgba(255,255,255,0.78);
+}
+
+body.lv .pill-btn,
+body.lv .icon-btn{
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  border-color: rgba(255,255,255,0.28);
+  background: rgba(255,255,255,0.12);
+}
+
+/* Board */
+.board-wrap{
+  position: relative;
+  display: grid;
+  place-items: center;
+  gap: 0;
+  overflow: hidden;
+}
+
+canvas{
+  touch-action: none;
   user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.etched-stats .dot {
-  opacity: 0.35;
+#puzzleCanvas{
+  display: block;
+  width: min(calc(100vw - 24px), 820px);
+  height: min(calc(100vw - 24px), 820px);
+  max-height: calc(100vh - 210px);
+  margin: 0 auto;
+
+  border-radius: calc(var(--radius) + 6px);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.16);
+
+  box-shadow:
+    0 34px 80px rgba(0,0,0,0.55),
+    0 10px 28px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.08);
 }
 
-/* Orb lives on the board: bottom center */
+body.lv #puzzleCanvas{
+  border: 4px solid rgba(255,255,255,0.85);
+  box-shadow:
+    0 34px 80px rgba(0,0,0,0.55),
+    0 0 0 6px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.12);
+}
+
+/* Orb */
+/* Orb sits on the board edge: center dot on the canvas bottom border */
 .orb-wrap{
   position: absolute;
   left: 50%;
-  bottom: 12px;
-  transform: translateX(-50%);
+  bottom: 0;                       /* anchor to canvas bottom edge */
+  transform: translateX(-50%) translateY(50%); /* push down by half its own height */
   display: grid;
   place-items: center;
   z-index: 80;
@@ -256,27 +296,16 @@ body {
   pointer-events: auto;
 }
 
-
-/* Keep menu above the orb */
-.orb-menu{
-  left: 50%;
-  bottom: calc(100% + 10px);
-  top: auto;
-}
-
-
-
-.orb-wrap > * {
-  pointer-events: auto;
-}
-
-.orb {
+.orb{
   width: 62px;
   height: 62px;
   border-radius: 999px;
   border: 1px solid rgba(255,255,255,0.14);
   background: rgba(255,255,255,0.06);
+
   backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+
   color: rgba(236,242,255,0.9);
   font-size: 22px;
   line-height: 1;
@@ -286,18 +315,29 @@ body {
     inset 0 0 28px rgba(255,255,255,0.06);
 
   transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+  position: relative;
 }
 
-.orb:hover {
+.orb:hover{
   transform: translateY(-1px);
   background: rgba(255,255,255,0.085);
   border-color: rgba(255,255,255,0.18);
 }
 
+.orb::before{
+  content: "";
+  position: absolute;
+  inset: -18px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(90,160,255,0.35), rgba(90,160,255,0) 60%);
+  filter: blur(6px);
+  z-index: -1;
+}
+
 .orb-menu{
   position: absolute;
   left: 50%;
-  bottom: calc(100% + 10px);
+  bottom: calc(100% + 18px);
   transform: translateX(-50%) translateY(10px) scale(0.98);
 
   display: grid;
@@ -311,74 +351,32 @@ body {
     transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-
 .orb-menu.open{
   opacity: 1;
   transform: translateX(-50%) translateY(0) scale(1);
   pointer-events: auto;
 }
 
-
 .orb-action{
   padding: 10px 18px;
+  border-radius: 999px;
 
   background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-
   border: 1px solid rgba(255,255,255,0.14);
-  border-radius: 999px;
+
+  backdrop-filter: blur(12px) saturate(170%);
+  -webkit-backdrop-filter: blur(12px) saturate(170%);
 
   color: rgba(255,255,255,0.9);
   font-weight: 500;
 
   box-shadow:
     inset 0 0 0 1px rgba(255,255,255,0.04),
-    0 8px 20px rgba(0,0,0,0.35);
-
-  transition:
-    background 140ms ease,
-    transform 120ms ease,
-    box-shadow 140ms ease;
-}
-
-.orb-action{
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.04),
     0 8px 20px rgba(0,0,0,0.35),
     0 0 18px rgba(120,180,255,0.08);
-}
 
-.orb[aria-expanded="true"]{
-  transform: scale(0.96);
-  box-shadow:
-    0 4px 16px rgba(0,0,0,0.6),
-    0 0 22px rgba(120,180,255,0.35);
+  transition: background 140ms ease, transform 120ms ease, box-shadow 140ms ease;
 }
-
-.orb-menu.open .orb-action{
-  animation: pillFade 220ms ease forwards;
-}
-
-.orb-menu.open .orb-action:nth-child(1){
-  animation-delay: 20ms;
-}
-.orb-menu.open .orb-action:nth-child(2){
-  animation-delay: 60ms;
-}
-
-@keyframes pillFade{
-  from{
-    opacity: 0;
-    transform: translateY(8px) scale(0.96);
-  }
-  to{
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-
 
 .orb-action:hover{
   background: rgba(255,255,255,0.14);
@@ -391,316 +389,10 @@ body {
   transform: translateY(1px);
 }
 
-
-.orb{
-  position: relative;
-}
-
-.orb::before{
-  content: "";
-  position: absolute;
-  inset: -18px;
-  border-radius: 999px;
-  background: radial-gradient(circle, rgba(90,160,255,0.35), rgba(90,160,255,0) 60%);
-  filter: blur(6px);
-  z-index: -1;
-}
-
-
-.board-wrap{
-  position: relative;
-  display: grid;
-  place-items: center;
-  gap: 0;            /* was 14px */
-  overflow: hidden;
-}
-
-
-
-/* Canvas stays premium */
-canvas {
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-#puzzleCanvas {
-  display: block;
-  width: min(calc(100vw - 24px), 820px);
-  height: min(calc(100vw - 24px), 820px);
-  max-height: calc(100vh - 210px);
-  margin: 0 auto;
-
-  border-radius: calc(var(--radius) + 6px);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-
-  box-shadow:
-    0 34px 80px rgba(0, 0, 0, 0.55),
-    0 10px 28px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-/* Screen-reader only helper */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.difficulty {
-  position: relative;
-}
-
-.difficulty-menu {
-  position: absolute;
-  top: 52px;
-  right: 0;
-  z-index: 20;
-
-  display: grid;
-  gap: 6px;
-  padding: 8px;
-
-  border-radius: 16px;
-
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
-
-  border: 1px solid var(--glass-border);
-
-  box-shadow:
-    0 24px 60px var(--glass-shadow),
-    inset 0 1px 0 var(--glass-highlight);
-
-
-  opacity: 0;
-  transform: translateY(8px) scale(0.98);
-  pointer-events: none;
-
-  transition: opacity 160ms ease,
-              transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.difficulty-menu.open {
-  opacity: 1;
-  transform: translateY(0px) scale(1);
-  pointer-events: auto;
-}
-
-.difficulty-menu button {
-  border: none;
-  border-radius: 12px;
-  padding: 8px 14px;
-  font: inherit;
-  color: var(--ink);
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.12);
-  cursor: pointer;
-  transition: background 120ms ease, transform 120ms ease;
-}
-
-.difficulty-menu button:hover {
-  background: rgba(255,255,255,0.08);
-  transform: translateY(-1px);
-}
-
-.hud {
-  position: relative;
-  z-index: 1000;
-}
-
-.difficulty {
-  position: relative;
-  z-index: 1001;
-}
-
-.difficulty-menu {
-  z-index: 1002;
-}
-
-.ribbon{
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 8px 10px; /* slightly slimmer */
-}
-
-
-.a11y-row{
-  display:flex;
-  justify-content:center;
-  gap:10px;
-  padding: 8px 0 0 0;
-  flex-wrap: wrap;
-}
-
-/* Low vision mode, crank contrast and size */
-body.lv{
-  --ink: rgba(255,255,255,0.98);
-  --muted: rgba(255,255,255,0.78);
-}
-
-body.lv .pill-btn,
-body.lv .icon-btn,
-body.lv .orb-action{
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  border-color: rgba(255,255,255,0.28);
-  background: rgba(255,255,255,0.12);
-}
-
-/* Chunky board frame to help when blurry */
-body.lv #puzzleCanvas{
-  border: 4px solid rgba(255,255,255,0.85);
-  box-shadow:
-    0 34px 80px rgba(0,0,0,0.55),
-    0 0 0 6px rgba(0,0,0,0.35),
-    inset 0 1px 0 rgba(255,255,255,0.12);
-}
-
-
-@media (max-width: 760px) {
-  .ribbon {
-    padding: 9px 9px;
-  }
-  #puzzleCanvas {
-    width: min(calc(100vw - 24px), 760px);
-    height: min(calc(100vw - 24px), 760px);
-  }
-}
-
-/* Mobile HUD rescue: allow ribbon to wrap and stop clipping */
-@media (max-width: 520px) {
-
-  .hud{
-    width: calc(100% - 14px);
-    margin: 10px auto 10px;
-    padding: 10px 10px;
-    border-radius: 28px; /* less extreme than 999px */
-  }
-
-  .ribbon{
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-    padding: 10px;
-    border-radius: 22px;
-  }
-
-  .ribbon-left,
-  .ribbon-right{
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 8px;
-  }
-
-  /* Make the center collection block take full row so it never gets chopped */
-  .collection{
-    width: auto;
-    display: flex;
-    justify-content: center;
-  }
-
-  /* Slightly smaller controls on phones */
-  .icon-btn,
-  .pill-btn{
-    height: 36px;
-    padding: 0 10px;
-    font-size: 14px;
-  }
-
-  .icon-btn{
-    width: 40px;
-  }
-
-  /* Stats: wrap cleanly and tighten */
-  .etched-stats{
-    flex-wrap: wrap;
-    gap: 8px 10px;
-    font-size: 13px;
-    padding: 8px 0 0 0;
-    text-align: center;
-  }
-
-  .etched-stats .dot{
-    display: none; /* stops ugly mid wrap dots */
-  }
-
-    .orb{
-    width: 44px;
-    height: 44px;
-    font-size: 18px;
-  }
-
-  .orb::before{
-    inset: -14px; /* shrink glow radius proportionally */
-  }
-
-  .orb-wrap{
-    bottom: 8px;
-  }
-
-  .splash-pill{
-    position: absolute;
-    left: 50%;
-    top: 10%;
-    transform: translate(-50%, -50%);
-    z-index: 7000;
-    pointer-events: none;
-
-    box-sizing: border-box;
-    width: min(90vw, 420px);
-    padding: 12px 16px;
-
-    font-size: clamp(15px, 4vw, 20px);
-    line-height: 1.25;
-
-    text-align: center;
-
-    white-space: normal;
-    overflow-wrap: normal;
-    
-  }
-
-  .hud{
-    padding: 8px 8px;
-    border-radius: 22px;
-  }
-
-  .ribbon{
-    padding: 8px;
-    gap: 8px;
-  }
-
-  .a11y-row{
-    padding-top: 6px;
-    gap: 8px;
-  }
-
-  .etched-stats{
-    padding-top: 6px;
-  }
-
-  .app{
-    padding-top: 6px;
-  }
-}
-
-
-
-/* Collection menu uses orb-menu glass, but opens downward */
+/* Collection menu uses orb-menu, opens downward */
 .collection .orb-menu{
   top: calc(100% + 10px);
   bottom: auto;
-
   left: 50%;
   transform: translateX(-50%) translateY(-10px) scale(0.98);
 }
@@ -709,92 +401,41 @@ body.lv #puzzleCanvas{
   transform: translateX(-50%) translateY(0) scale(1);
 }
 
-/* dropdown-menu should behave like orb-menu: floating pills, no slab */
-.dropdown-menu{
+/* Difficulty menu: keep your existing structure, but make it pills not a slab */
+.difficulty{ position: relative; z-index: 1001; }
+
+.difficulty-menu{
+  position: absolute;
+  top: 52px;
+  right: 0;
+  z-index: 1002;
+
   display: grid;
   gap: 10px;
-  padding: 0;
 
+  padding: 0;
   background: transparent;
   border: 0;
   box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+
+  opacity: 0;
+  transform: translateY(8px) scale(0.98);
+  pointer-events: none;
+
+  transition: opacity 160ms ease, transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.dropdown-menu .orb-action{
-  /* ensure it wins even inside HUD contexts */
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(12px) saturate(170%);
-  -webkit-backdrop-filter: blur(12px) saturate(170%);
-  border: 1px solid rgba(255,255,255,0.14);
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.04),
-    0 8px 20px rgba(0,0,0,0.35),
-    0 0 18px rgba(120,180,255,0.08);
+.difficulty-menu.open{
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
 }
 
-/* Dropdowns portaled to body so backdrop-filter can see the canvas like orb does */
-.menu-portal{
-  position: fixed;
-  z-index: 6000;
-}
-
-/* Use orb-menu animation language while fixed */
-.menu-portal.orb-menu{
-  transform: translateX(-50%) translateY(10px) scale(0.98);
-}
-.menu-portal.orb-menu.open{
-  transform: translateX(-50%) translateY(0) scale(1);
-}
-
-.menu-portal{
-  position: fixed;
-  z-index: 6000;
-}
-
-.menu-portal.orb-menu,
-.menu-portal.dropdown-menu{
-  transform: translateX(-50%) translateY(10px) scale(0.98);
-}
-
-.menu-portal.open{
-  transform: translateX(-50%) translateY(0) scale(1);
-}
-
-/* Difficulty menu: remove the slab, keep positioning + animation */
-.difficulty-menu{
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  padding: 0 !important;
-  gap: 10px !important;
-}
-
-/* Make sure difficulty buttons use orb pill styling (not the old square menu buttons) */
 .difficulty-menu button{
-  border-radius: 999px !important;
+  border-radius: 999px;
 }
 
-/* Orb menu should NOT block dragging when closed */
-.orb-wrap .orb-menu{
-  pointer-events: none !important;
-}
-
-.orb-wrap .orb-menu.open{
-  pointer-events: auto !important;
-}
-
-#puzzleCanvas {
-  touch-action: none;
-}
-
-
-
-
-/* ---------------------------------How-To modal (orb style)-------------------------------------- */
+/* How-To modal */
 .howto-overlay{
   position: fixed;
   inset: 0;
@@ -807,6 +448,8 @@ body.lv #puzzleCanvas{
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
+
+.howto-overlay[hidden]{ display: none !important; }
 
 .howto-card{
   width: min(520px, calc(100vw - 32px));
@@ -843,18 +486,9 @@ body.lv #puzzleCanvas{
   width: 40px;
   height: 40px;
   border-radius: 999px;
-
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.14);
   color: var(--ink);
-
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.04),
-    0 8px 20px rgba(0,0,0,0.35);
-
   cursor: pointer;
 }
 
@@ -863,16 +497,6 @@ body.lv #puzzleCanvas{
   padding: 6px 10px 10px 10px;
   font-size: 14px;
   line-height: 1.4;
-}
-
-.howto-body ul{
-  margin: 10px 0 10px 18px;
-  padding: 0;
-}
-
-.howto-tip{
-  opacity: 0.85;
-  margin: 10px 0 0 0;
 }
 
 .howto-actions{
@@ -886,26 +510,32 @@ body.lv #puzzleCanvas{
   font-weight: 800;
 }
 
-.howto-overlay[hidden]{
-  display: none !important;
-}
-
-
-/* --------------------------------- Loading overlay (also orb style) -------------------------------------- */
+/* Loading overlay */
 .loading-overlay{
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
-  z-index: 120;              /* above canvas + orb */
-  pointer-events: none;      /* never blocks dragging */
+  z-index: 120;
+  pointer-events: none;
 }
 
-.loading-overlay[hidden]{
-  display: none !important;
+.loading-overlay[hidden]{ display: none !important; }
+
+.loading-overlay::before{
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.28);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border-radius: calc(var(--radius) + 6px);
 }
 
 .loading-card{
+  position: relative;
+  z-index: 1;
+
   display: flex;
   align-items: center;
   gap: 12px;
@@ -915,20 +545,13 @@ body.lv #puzzleCanvas{
 
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
+
   box-shadow:
     0 20px 55px rgba(0,0,0,0.55),
     inset 0 1px 0 var(--glass-highlight);
 
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
-
-  transform: translateY(6px);
-  opacity: 0;
-  animation: loaderIn 180ms ease forwards;
-}
-
-@keyframes loaderIn{
-  to{ transform: translateY(0); opacity: 1; }
 }
 
 .loading-spinner{
@@ -940,68 +563,17 @@ body.lv #puzzleCanvas{
   animation: spin 650ms linear infinite;
 }
 
-@keyframes spin{
-  to{ transform: rotate(360deg); }
-}
-
-.loading-title{
-  font-weight: 800;
-  letter-spacing: 0.2px;
-  color: var(--ink);
-  font-size: 14px;
-  line-height: 1.1;
-}
-
-.loading-sub{
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.1;
-  margin-top: 2px;
-}
-
-.loading-overlay{
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  z-index: 120;
-  pointer-events: none;
-}
-
-.loading-overlay[hidden]{
-  display: none !important;
-}
-
-/* The frosted veil */
-.loading-overlay::before{
-  content: "";
-  position: absolute;
-  inset: 0;
-
-  /* the important part: translucent fill so backdrop-filter kicks in */
-  background: rgba(0,0,0,0.28);
-
-  backdrop-filter: blur(16px) saturate(160%);
-  -webkit-backdrop-filter: blur(16px) saturate(160%);
-
-  border-radius: calc(var(--radius) + 6px); /* match canvas rounding vibe */
-}
-
-/* keep the loader card above the veil */
-.loading-card{
-  position: relative;
-  z-index: 1;
-}
+@keyframes spin{ to{ transform: rotate(360deg); } }
 
 .board-wrap.is-loading #puzzleCanvas{
   filter: blur(10px) saturate(1.15) brightness(0.85);
 }
 
-
+/* Splash pill */
 #splashPill{
   position: absolute;
   left: 50%;
-  top: 58%;                 /* tweak this value */
+  top: 58%;
   transform: translate(-50%, -50%);
   z-index: 20;
 
@@ -1014,8 +586,91 @@ body.lv #puzzleCanvas{
   word-break: break-word;
 }
 
-@media (max-width: 520px){
-  .orb-wrap{
-    margin-top: 12px;
+/* Mobile */
+@media (max-width: 760px){
+  #puzzleCanvas{
+    width: min(calc(100vw - 24px), 760px);
+    height: min(calc(100vw - 24px), 760px);
   }
+}
+
+@media (max-width: 520px){
+  .hud{
+    width: calc(100% - 14px);
+    margin: 10px auto 10px;
+    padding: 10px 10px;
+    border-radius: 22px;
+  }
+
+  .ribbon{
+    padding: 8px;
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .icon-btn,
+  .pill-btn{
+    height: 36px;
+    padding: 0 10px;
+    font-size: 14px;
+  }
+
+  .icon-btn{ width: 40px; }
+
+  .a11y-row{ gap: 8px; }
+
+  .stats-pill{
+    gap: 8px;
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+
+  .stats-pill .dot{ display: none; }
+
+  .orb{
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+  }
+
+  .orb::before{ inset: -14px; }
+
+  .orb-wrap{ bottom: 8px; }
+
+  #splashPill{
+    top: 10%;
+    font-size: clamp(15px, 4vw, 20px);
+    line-height: 1.25;
+  }
+}
+
+/* Menus are portaled to <body> for proper blur/backdrop; they must be fixed-positioned */
+.menu-portal{
+  position: fixed !important;
+  z-index: 6000;
+}
+
+
+/* When portaled, let JS control position and center horizontally */
+.menu-portal.orb-menu,
+.menu-portal.difficulty-menu{
+  right: auto !important;
+  bottom: auto !important;
+  left: auto;
+  top: auto;
+  transform: translate(-50%, 8px) scale(0.98);
+}
+
+.menu-portal.orb-menu.open,
+.menu-portal.difficulty-menu.open{
+  transform: translate(-50%, 0) scale(1);
+}
+
+body.lv #hvNextBtn{
+  font-weight: 900;
+  border-width: 2px;
+  background: rgba(255,255,255,0.18);
+}
+
+body.lv canvas{
+  outline: 3px solid rgba(255,255,255,0.6);
 }
