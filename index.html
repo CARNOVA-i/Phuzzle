@@ -129,6 +129,7 @@
           <button id="shuffleBtn" type="button" class="orb-action" role="menuitem">Shuffle</button>
           <button id="pauseBtn" type="button" class="orb-action" role="menuitem">Pause</button>
           <button id="infoBtn" type="button" class="orb-action" role="menuitem">How To</button>
+          <button id="statsBtn" type="button" class="orb-action" role="menuitem">Stats</button>
         </div>
       </div>
     </section>
@@ -154,6 +155,24 @@
 
     <div class="howto-actions">
       <button id="howtoGotItBtn" type="button" class="pill-btn howto-gotit">Got it</button>
+    </div>
+  </div>
+</div>
+
+<div id="statsOverlay" class="overlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Stats">
+    <h2 class="modal-title">Stats</h2>
+
+    <div id="statsSummary" class="stats-summary"></div>
+
+    <button id="statsDetailsBtn" class="pill-btn" type="button" aria-expanded="false">
+      Details
+    </button>
+
+    <div id="statsDetails" class="stats-details" hidden></div>
+
+    <div class="modal-actions">
+      <button id="statsCloseBtn" class="pill-btn" type="button">Close</button>
     </div>
   </div>
 </div>

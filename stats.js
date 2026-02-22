@@ -9,6 +9,7 @@ const DEFAULT_STATS = {
   totalPlayTimeSec: 0,
 
   fastestSecBySize: {}, // e.g. { "3x3": 62, "4x4": 141 }
+  bestMovesBySize: {}, // e.g. { "4x4": 32 }
   solvesBySize: {},     // e.g. { "3x3": 10, "4x4": 3 }
 
   streak: {
@@ -119,6 +120,13 @@ export function statsEndRunOnSolve({ sizeKey, moves, elapsedSec }) {
     stats.fastestSecBySize[key] = sec;
   }
 
+  // Best moves per size
+  const moveCount = Math.max(0, Number(moves) || 0);
+  const prevBestMoves = stats.bestMovesBySize[key];
+  if (prevBestMoves == null || moveCount < prevBestMoves) {
+    stats.bestMovesBySize[key] = moveCount;
+  }
+
   saveStats(stats);
   activeRun = null;
   return stats;
@@ -127,4 +135,8 @@ export function statsEndRunOnSolve({ sizeKey, moves, elapsedSec }) {
 export function statsResetAll() {
   localStorage.removeItem(PHUZZLE_STATS_KEY);
   activeRun = null;
+}
+
+export function statsGetSnapshot() {
+  return loadStats();
 }

@@ -1,4 +1,4 @@
-import { statsBeginRun, statsEndRunOnSolve } from "./stats.js";
+import { statsBeginRun, statsEndRunOnSolve, statsGetSnapshot } from "./stats.js";
 
 
 
@@ -205,6 +205,12 @@ const orbPrevBtn = document.getElementById("orbPrevBtn");
 const orbNextBtn = document.getElementById("orbNextBtn");
 const orbRandomBtn = document.getElementById("orbRandomBtn");
 const collectionWrap = document.getElementById("collectionWrap");
+const statsBtn = document.getElementById("statsBtn");
+const statsOverlay = document.getElementById("statsOverlay");
+const statsCloseBtn = document.getElementById("statsCloseBtn");
+const statsSummary = document.getElementById("statsSummary");
+const statsDetailsBtn = document.getElementById("statsDetailsBtn");
+const statsDetails = document.getElementById("statsDetails");
 
 
 
@@ -257,7 +263,6 @@ const lockedTiles = new Set();
 
 const LOADER_MIN_MS = 900; // adjust this (milliseconds)
 const boardWrap = document.querySelector(".board-wrap");
-
 
 
 
@@ -482,6 +487,83 @@ orbMenu?.addEventListener("click", () => {
   // close after action tap
   setOrbOpen(false);
 });
+
+
+function fmtTime(sec){
+  sec = Math.max(0, Number(sec) || 0);
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${String(s).padStart(2,"0")}`;
+}
+
+function fmtMinutes(sec){
+  sec = Math.max(0, Number(sec) || 0);
+  const min = Math.max(1, Math.round(sec / 60));
+  return `${min} min`;
+}
+
+function renderStats(){
+  const s = statsGetSnapshot();
+
+  const solves = s.totalSolves ?? 0;
+  const streak = s.streak?.current ?? 0;
+  const longest = s.streak?.longest ?? 0;
+  const play = s.totalPlayTimeSec ?? 0;
+
+  statsSummary.innerHTML = `
+    <div class="stats-row"><span>Lifetime Solves</span><strong>${solves}</strong></div>
+    <div class="stats-row"><span>Streak</span><strong>${streak} (best ${longest})</strong></div>
+    <div class="stats-row"><span>Play Time</span><strong>${fmtMinutes(play)}</strong></div>
+  `;
+
+  const fastest = s.fastestSecBySize || {};
+  const bestMoves = s.bestMovesBySize || {};
+
+  const sizes = ["3x3","4x4","5x5","6x6"];
+  const rows = sizes.map(k => {
+    const t = fastest[k] == null ? "–" : fmtTime(fastest[k]);
+    const m = bestMoves[k] == null ? "–" : bestMoves[k];
+    return `<tr><td>${k}</td><td>${t}</td><td>${m}</td></tr>`;
+  }).join("");
+
+  statsDetails.innerHTML = `
+    <table class="stats-table">
+      <thead><tr><th>Size</th><th>Best Time</th><th>Best Moves</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+function openStats(){
+  renderStats();
+  statsOverlay.hidden = false;
+}
+
+function closeStats(){
+  statsOverlay.hidden = true;
+  statsDetails.hidden = true;
+  statsDetailsBtn?.setAttribute("aria-expanded", "false");
+}
+
+statsBtn?.addEventListener("click", () => {
+  //closeOrb?.(); // if you have a closeOrb() helper, keep this line. If not, delete it.
+  openStats();
+});
+
+statsCloseBtn?.addEventListener("click", closeStats);
+
+statsOverlay?.addEventListener("click", (e) => {
+  if (e.target === statsOverlay) closeStats();
+});
+
+statsDetailsBtn?.addEventListener("click", () => {
+  const next = statsDetails.hidden;
+  statsDetails.hidden = !next;
+  statsDetailsBtn.setAttribute("aria-expanded", String(next));
+  statsDetailsBtn.textContent = next ? "Hide Details" : "Details";
+});
+
+
 
 
 function isGracePhoto() {
@@ -1759,8 +1841,13 @@ function completeMoveIfNeeded() {
     if (vibeEnabled) proxVibe.buzzSuccess();
 
     recomputeClusters();
-    if (isSolved()) {
+    if (!solved && isSolved()) {
       solved = true;
+      statsEndRunOnSolve({
+        sizeKey: `${rows}x${cols}`,
+        moves,
+        elapsedSec: Math.round(elapsedMs / 1000)
+      });
       if (timerHandle) {
         clearInterval(timerHandle);
         timerHandle = null;
