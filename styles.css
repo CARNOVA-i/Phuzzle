@@ -341,7 +341,7 @@ body.lv #puzzleCanvas{
   transform: translateX(-50%) translateY(10px) scale(0.98);
 
   display: grid;
-  gap: 10px;
+  gap: 6px;
 
   opacity: 0;
   visibility: hidden;
