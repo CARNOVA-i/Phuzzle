@@ -211,11 +211,21 @@ const statsCloseBtn = document.getElementById("statsCloseBtn");
 const statsSummary = document.getElementById("statsSummary");
 const statsDetailsBtn = document.getElementById("statsDetailsBtn");
 const statsDetails = document.getElementById("statsDetails");
+const modifiersBtn = document.getElementById("modifiersBtn");
+const modifiersOverlay = document.getElementById("modifiersOverlay");
+const modsCloseBtn = document.getElementById("modsCloseBtn");
+const modNoCluster = document.getElementById("modNoCluster");
+const modsNote = document.getElementById("modsNote");
+const modsMult = document.getElementById("modsMult");
 
 
 
+let lastSolveMultiplier = 1;
+let lastSolveWasModded = false;
 
+let confettiMode = "normal"; // "normal" or "hardcore"
 
+let statsRunStarted = false;
 
 
 let previousCollection = null;
@@ -246,6 +256,85 @@ let confettiActive = false;
 let dpr = Math.max(1, window.devicePixelRatio || 1);
 let currentImage = null; // { src, label }
 let hasStarted = false;
+
+
+const modifierState = {
+  active: {
+    noCluster: false
+  },
+  locked: false
+};
+
+const modifierWeights = {
+  noCluster: 1.2
+};
+
+function getDifficultyMultiplier(){
+  let m = 1;
+  for (const k in modifierState.active) {
+    if (modifierState.active[k]) m *= (modifierWeights[k] || 1);
+  }
+  return m;
+}
+
+function syncModsUI(){
+  const locked = !!modifierState.locked;
+  const activeCount = Object.values(modifierState.active).filter(Boolean).length;
+
+  modNoCluster.checked = !!modifierState.active.noCluster;
+  modNoCluster.disabled = locked;
+
+  if (modsNote) {
+    modsNote.textContent = locked
+      ? "Modifiers are locked for this puzzle."
+      : "Set modifiers before the puzzle begins. They lock once play starts.";
+  }
+
+  if (modsMult) {
+    modsMult.textContent = getDifficultyMultiplier().toFixed(1) + "x";
+  }
+
+  if (modifiersBtn) {
+    if (activeCount === 0) {
+      modifiersBtn.textContent = "⚙ Modifiers";
+    } else if (!modifierState.locked) {
+      modifiersBtn.textContent = `⚙ Armed (${activeCount})`;
+    } else {
+      modifiersBtn.textContent = `🔒 Hardcore (${activeCount})`;
+    }
+
+    modifiersBtn.setAttribute(
+      "aria-expanded",
+      modifiersOverlay && !modifiersOverlay.hidden ? "true" : "false"
+    );
+  }
+  
+
+  // Board glow
+  document.body.classList.remove("mods-armed", "mods-live");
+
+  if (activeCount > 0) {
+    if (modifierState.locked) {
+      document.body.classList.add("mods-live");
+    } else {
+      document.body.classList.add("mods-armed");
+    }
+  }
+}
+
+function openMods(){
+  if (!modifiersOverlay) return;
+  syncModsUI();
+  modifiersOverlay.hidden = false;
+  setOrbOpen(false);
+}
+
+function closeMods(){
+  if (!modifiersOverlay) return;
+  modifiersOverlay.hidden = true;
+  syncModsUI();
+}
+
 
 const splashImg = new Image();
 splashImg.onload = () => { if (!hasStarted) draw(); };
@@ -554,11 +643,16 @@ function renderStats(){
   const streak = s.streak?.current ?? 0;
   const longest = s.streak?.longest ?? 0;
   const play = s.totalPlayTimeSec ?? 0;
+  const modSolves = s.modSolves ?? 0;
+  const maxMult = s.highestDifficultyMultiplier ?? 1;
 
   statsSummary.innerHTML = `
     <div class="stats-row"><span>Lifetime Solves</span><strong>${solves}</strong></div>
+    <div class="stats-row"><span>Modifier Clears</span><strong>${modSolves}</strong></div>
+    <div class="stats-row"><span>Highest Difficulty</span><strong>${Number(maxMult).toFixed(1)}x</strong></div>
     <div class="stats-row"><span>Streak</span><strong>${streak} (best ${longest})</strong></div>
     <div class="stats-row"><span>Play Time</span><strong>${fmtMinutes(play)}</strong></div>
+    
   `;
 
   const fastest = s.fastestSecBySize || {};
@@ -608,6 +702,30 @@ statsDetailsBtn?.addEventListener("click", () => {
   statsDetailsBtn.textContent = next ? "Hide Details" : "Details";
 });
 
+
+modifiersBtn?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  openMods();
+});
+
+modsCloseBtn?.addEventListener("click", closeMods);
+
+modifiersOverlay?.addEventListener("click", (e) => {
+  if (e.target === modifiersOverlay) closeMods();
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && modifiersOverlay && !modifiersOverlay.hidden) closeMods();
+});
+
+modNoCluster?.addEventListener("change", () => {
+  if (modifierState.locked) {
+    syncModsUI();
+    return;
+  }
+  modifierState.active.noCluster = !!modNoCluster.checked;
+  syncModsUI();
+});
 
 
 
@@ -932,8 +1050,15 @@ function clusterHasLockedTile(memberTileIds) {
 }
 
 function tryRigidTranslateSwap(draggedTileId, dropCellIndex) {
-  const draggedRoot = clusterState.rootByTileId[draggedTileId];
-  const members = clusterState.membersByRoot.get(draggedRoot) || [];
+  // No Cluster Drag: treat the moving "cluster" as just the dragged tile
+  let members;
+  if (modifierState.active.noCluster) {
+    members = [draggedTileId];
+  } else {
+    const draggedRoot = clusterState.rootByTileId[draggedTileId];
+    members = clusterState.membersByRoot.get(draggedRoot) || [];
+  }
+
   if (!members.length) return false;
   if (clusterHasLockedTile(members)) return false;
 
@@ -1087,7 +1212,8 @@ function shuffleBoard() {
   stopSolveAnimation();
   recomputeClusters();
   resetTimerAndMoves();
-  statsBeginRun({ sizeKey: difficultyKey() });
+  statsRunStarted = false;
+
   draw();
 }
 
@@ -1375,12 +1501,9 @@ function drawConfetti(size) {
 
   ctx.save();
 
-  const colors = [
-    "#7c5cff",
-    "#56ccf2",
-    "#86ecf8",
-    "#ffffff"
-  ];
+  const colors = confettiMode === "hardcore"
+    ? ["#ff4bd8", "#7c5cff", "#56ccf2", "#ffffff"]
+    : ["#7c5cff", "#56ccf2", "#86ecf8", "#ffffff"];
 
   for (let p of confettiParticles) {
     p.x += p.vx;
@@ -1622,6 +1745,21 @@ function drawSolveOverlay(size) {
   ctx.fillStyle = `rgba(236, 242, 255, ${Math.min(1, 0.98 * textIn + blink)})`;
   ctx.fillText("SOLVED", 0, 0);
 
+  // Hardcore subtitle for modded clears
+  if (lastSolveWasModded) {
+    ctx.save();
+
+    ctx.shadowColor = `rgba(190,120,255, ${0.65 * textIn})`;
+    ctx.shadowBlur = 16;
+
+    ctx.fillStyle = `rgba(236,242,255, ${0.90 * textIn})`;
+    ctx.font = `750 ${Math.max(12, Math.floor(size * 0.028))}px ui-sans-serif, system-ui, "Segoe UI", sans-serif`;
+
+    const sub = `HARDCORE CLEAR • ${lastSolveMultiplier.toFixed(1)}x`;
+    ctx.fillText(sub, 0, Math.max(22, Math.floor(size * 0.065)));
+
+    ctx.restore();
+  }
   
 
   ctx.restore();
@@ -1888,6 +2026,8 @@ function completeMoveIfNeeded() {
     recomputeClusters();
     if (!solved && isSolved()) {
       solved = true;
+      lastSolveMultiplier = getDifficultyMultiplier();
+      lastSolveWasModded = lastSolveMultiplier > 1;
       statsEndRunOnSolve({
         sizeKey: `${rows}x${cols}`,
         moves,
@@ -1900,6 +2040,7 @@ function completeMoveIfNeeded() {
       persistBestIfNeeded();
       startSolveAnimation();
       proxTone.victoryChime();
+      confettiMode = lastSolveWasModded ? "hardcore" : "normal";
       spawnConfetti(canvas.width / dpr);
       if (navigator.vibrate) navigator.vibrate(40);
       
@@ -2121,6 +2262,21 @@ function computeDragCloseness(){
 function beginDrag(e) {
   if (!imageLoaded || solved || isPaused) return;
 
+  // Lock modifiers + start stats on first real interaction (first move)
+  if (!modifierState.locked) {
+    modifierState.locked = true;
+    syncModsUI();
+  }
+
+  if (!statsRunStarted) {
+    statsBeginRun({
+      sizeKey: difficultyKey(),
+      difficultyMultiplier: getDifficultyMultiplier(),
+      activeModifiers: Object.keys(modifierState.active).filter(k => modifierState.active[k])
+    });
+    statsRunStarted = true;
+  }
+
   const startClientX = e.clientX;
   const startClientY = e.clientY;
 
@@ -2129,7 +2285,14 @@ function beginDrag(e) {
   if (startIndex < 0) return;
 
   const draggedTileId = board[startIndex];
-  const cluster = getClusterFromIndex(startIndex);
+
+  let cluster;
+  if (modifierState.active.noCluster) {
+    cluster = { root: draggedTileId, members: [draggedTileId] };
+  } else {
+    cluster = getClusterFromIndex(startIndex);
+  }
+
   if (clusterHasLockedTile(cluster.members)) return;
 
   pendingDrag = {
@@ -2248,6 +2411,9 @@ function cancelDrag(e) {
 }
 
 function loadCurrentPhotoAndShuffle() {
+  modifierState.locked = false;
+  syncModsUI();
+
   imageLoaded = false;
   showLoading("Loading photo", "Shuffling tiles…");
   draw();

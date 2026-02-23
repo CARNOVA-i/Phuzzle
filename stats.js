@@ -8,6 +8,10 @@ const DEFAULT_STATS = {
   totalMoves: 0,
   totalPlayTimeSec: 0,
 
+  // Modifier system
+  modSolves: 0,
+  highestDifficultyMultiplier: 1,
+
   fastestSecBySize: {}, // e.g. { "3x3": 62, "4x4": 141 }
   bestMovesBySize: {}, // e.g. { "4x4": 32 }
   solvesBySize: {},     // e.g. { "3x3": 10, "4x4": 3 }
@@ -109,6 +113,14 @@ export function statsEndRunOnSolve({ sizeKey, moves, elapsedSec }) {
     (activeRun ? Math.max(1, Math.round((performance.now() - activeRun.startedAtMs) / 1000)) : 0);
 
   stats.totalPlayTimeSec += Math.max(0, sec);
+
+    // Modifiers (recorded from statsBeginRun meta)
+  const mult = Number(activeRun?.meta?.difficultyMultiplier) || 1;
+  if (mult > 1) stats.modSolves += 1;
+  stats.highestDifficultyMultiplier = Math.max(
+    Number(stats.highestDifficultyMultiplier) || 1,
+    mult
+  );
 
   // Per-size counters
   const key = String(sizeKey || "unknown");

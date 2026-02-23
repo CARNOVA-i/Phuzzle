@@ -178,6 +178,15 @@ body.lv #hvNextBtn{ display: inline-flex; }
 body.lv #collectionWrap{ display: none; }
 
 
+.ribbon-center{
+  grid-column: 2;
+  justify-self: center;
+  display: flex;
+  align-items: center;
+}
+
+
+
 /* IMPORTANT: this assumes your ribbon children are:
    [collection] [spacer (optional)] [ribbon-right]
    We simulate the spacer with the 1fr middle column by placing
@@ -268,6 +277,51 @@ canvas{
     0 34px 80px rgba(0,0,0,0.55),
     0 10px 28px rgba(0,0,0,0.35),
     inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+/* Mods selected but not started */
+body.mods-armed #puzzleCanvas{
+  box-shadow:
+    0 34px 80px rgba(0,0,0,0.55),
+    0 10px 28px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 0 0 3px rgba(120,200,255,0.45),
+    0 0 45px rgba(120,200,255,0.35);
+}
+
+/* Mods active and locked (live run) */
+body.mods-live #puzzleCanvas{
+  box-shadow:
+    0 34px 80px rgba(0,0,0,0.55),
+    0 10px 28px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 0 0 3px rgba(190,120,255,0.65),
+    0 0 60px rgba(190,120,255,0.55);
+  animation: modsPulse 2.2s ease-in-out infinite;
+}
+
+@keyframes modsPulse {
+  0%   { box-shadow:
+          0 34px 80px rgba(0,0,0,0.55),
+          0 10px 28px rgba(0,0,0,0.35),
+          inset 0 1px 0 rgba(255,255,255,0.08),
+          0 0 0 3px rgba(190,120,255,0.65),
+          0 0 60px rgba(190,120,255,0.55);
+  }
+  50%  { box-shadow:
+          0 34px 80px rgba(0,0,0,0.55),
+          0 10px 28px rgba(0,0,0,0.35),
+          inset 0 1px 0 rgba(255,255,255,0.08),
+          0 0 0 3px rgba(210,150,255,0.85),
+          0 0 80px rgba(210,150,255,0.75);
+  }
+  100% { box-shadow:
+          0 34px 80px rgba(0,0,0,0.55),
+          0 10px 28px rgba(0,0,0,0.35),
+          inset 0 1px 0 rgba(255,255,255,0.08),
+          0 0 0 3px rgba(190,120,255,0.65),
+          0 0 60px rgba(190,120,255,0.55);
+  }
 }
 
 body.lv #puzzleCanvas{
@@ -751,6 +805,40 @@ body.lv canvas{
   border-radius: 18px;
   box-shadow: 0 18px 50px rgba(0,0,0,0.45);
 }
+
+/* Mods modal */
+
+.mods-note{
+  color: var(--muted);
+  margin: 6px 0 10px;
+  font-size: 14px;
+}
+
+.mods-item{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.mods-footer{
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mods-mult{
+  color: var(--muted);
+  font-weight: 700;
+}
+
 
 .overlay{
   position: fixed;
