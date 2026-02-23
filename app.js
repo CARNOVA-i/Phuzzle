@@ -389,15 +389,21 @@ function portalOpen(menuEl, anchorBtn, gap = 10) {
     menuEl.classList.add("menu-portal");
   }
 
-
   menuEl.style.right = "auto";
   menuEl.style.bottom = "auto";
 
-
-
   const r = anchorBtn.getBoundingClientRect();
+
   menuEl.style.left = `${r.left + r.width / 2}px`;
-  menuEl.style.top = `${r.bottom + gap}px`;
+
+  requestAnimationFrame(() => {
+    const h = menuEl.offsetHeight || 0;
+
+    // position ABOVE the orb button
+    const top = Math.max(8, r.top - gap - h);
+
+    menuEl.style.top = `${top}px`;
+  });
 }
 
 function portalClose(menuEl) {
