@@ -215,6 +215,7 @@ const modifiersBtn = document.getElementById("modifiersBtn");
 const modifiersOverlay = document.getElementById("modifiersOverlay");
 const modsCloseBtn = document.getElementById("modsCloseBtn");
 const modNoCluster = document.getElementById("modNoCluster");
+const modRotation = document.getElementById("modRotation");
 const modsNote = document.getElementById("modsNote");
 const modsMult = document.getElementById("modsMult");
 
@@ -260,13 +261,15 @@ let hasStarted = false;
 
 const modifierState = {
   active: {
-    noCluster: false
+    noCluster: false,
+    rotation: false
   },
   locked: false
 };
 
 const modifierWeights = {
-  noCluster: 1.2
+  noCluster: 1.2,
+  rotation: 1.45
 };
 
 function getDifficultyMultiplier(){
@@ -283,6 +286,11 @@ function syncModsUI(){
 
   modNoCluster.checked = !!modifierState.active.noCluster;
   modNoCluster.disabled = locked;
+
+  if (modRotation) {
+    modRotation.checked = !!modifierState.active.rotation;
+    modRotation.disabled = locked;
+  }
 
   if (modsNote) {
     modsNote.textContent = locked
@@ -348,6 +356,14 @@ splashImg.src = splashUrl;
 
 
 const lockedTiles = new Set();
+
+// Rotation Mode
+// quarterTurnsByTileId[tileId] => 0,1,2,3 representing 0°,90°,180°,270° clockwise
+let quarterTurnsByTileId = [];
+
+// Pointer helpers (used for rotate hotkeys when not actively dragging)
+let lastPointerCanvas = { x: 0, y: 0 };
+let lastTouchTap = { t: 0, x: 0, y: 0 };
 
 
 const LOADER_MIN_MS = 900; // adjust this (milliseconds)
@@ -727,6 +743,43 @@ modNoCluster?.addEventListener("change", () => {
   syncModsUI();
 });
 
+modRotation?.addEventListener("change", () => {
+  if (modifierState.locked) {
+    syncModsUI();
+    return;
+  }
+
+  modifierState.active.rotation = !!modRotation.checked;
+
+  // If the run hasn't started yet, apply rotation immediately so the player
+  // can see what Rotation Mode does without requiring a reshuffle.
+  // This stays strictly "pre-game" because modifiers lock on first interaction.
+  if (!modifierState.locked && moves === 0 && !statsRunStarted) {
+    // Ensure the rotation array is the right size.
+    if (!Array.isArray(quarterTurnsByTileId) || quarterTurnsByTileId.length !== board.length) {
+      quarterTurnsByTileId = new Array(board.length).fill(0);
+    }
+
+    if (modifierState.active.rotation) {
+      for (let tileId = 0; tileId < board.length; tileId += 1) {
+        quarterTurnsByTileId[tileId] = randomInt(4);
+      }
+    } else {
+      for (let tileId = 0; tileId < board.length; tileId += 1) {
+        quarterTurnsByTileId[tileId] = 0;
+      }
+    }
+
+    // No locks pre-game, but clear just in case the modal was opened after a solve.
+    lockedTiles.clear();
+    solved = false;
+    stopSolveAnimation();
+    draw();
+  }
+
+  syncModsUI();
+});
+
 
 
 function isGracePhoto() {
@@ -932,11 +985,14 @@ function setDifficulty(value) {
 
 function initializeSolvedBoard() {
   board = Array.from({ length: rows * cols }, (_, i) => i);
+  quarterTurnsByTileId = Array.from({ length: rows * cols }, () => 0);
 }
 
 function isSolved() {
   for (let i = 0; i < board.length; i += 1) {
     if (board[i] !== i) return false;
+    const tileId = board[i];
+    if ((quarterTurnsByTileId[tileId] || 0) !== 0) return false;
   }
   return true;
 }
@@ -1186,14 +1242,32 @@ function computeOffGrid01(x, y, cellW, cellH){
 
 
 function lockCorrectTilesNow() {
+  // Recompute locks from scratch each move.
+  // This prevents stale locks when a previously locked tile gets rotated later.
+  lockedTiles.clear();
+
   for (let index = 0; index < board.length; index += 1) {
     const tileId = board[index];
-    if (tileId === index) lockedTiles.add(tileId);
+    const rot = quarterTurnsByTileId[tileId] || 0;
+    if (tileId === index && rot === 0) lockedTiles.add(tileId);
   }
 }
 
 function shuffleBoard() {
   initializeSolvedBoard();
+
+  // Randomize per-tile rotation at shuffle if Rotation Mode is armed.
+  // Rotation stays with the tileId across swaps.
+  if (modifierState.active.rotation) {
+    for (let tileId = 0; tileId < board.length; tileId += 1) {
+      quarterTurnsByTileId[tileId] = randomInt(4);
+    }
+  } else {
+    for (let tileId = 0; tileId < board.length; tileId += 1) {
+      quarterTurnsByTileId[tileId] = 0;
+    }
+  }
+
   const swaps = Math.max(200, board.length * 30);
   for (let i = 0; i < swaps; i += 1) {
     const a = randomInt(board.length);
@@ -1247,9 +1321,20 @@ function tileIdToSourceRect(tileId) {
 function drawTileAt(tileId, dx, dy, alpha = 1) {
   if (!imageLoaded) return;
   const { sx, sy, sw, sh } = tileIdToSourceRect(tileId);
+  const q = (quarterTurnsByTileId[tileId] || 0) % 4;
   ctx.save();
   ctx.globalAlpha = alpha;
-  ctx.drawImage(image, sx, sy, sw, sh, dx, dy, tileWidth, tileHeight);
+
+  if (q === 0) {
+    ctx.drawImage(image, sx, sy, sw, sh, dx, dy, tileWidth, tileHeight);
+  } else {
+    const cx = dx + tileWidth / 2;
+    const cy = dy + tileHeight / 2;
+    ctx.translate(cx, cy);
+    ctx.rotate((q * Math.PI) / 2);
+    ctx.drawImage(image, sx, sy, sw, sh, -tileWidth / 2, -tileHeight / 2, tileWidth, tileHeight);
+  }
+
   ctx.restore();
 }
 
@@ -2054,6 +2139,57 @@ function completeMoveIfNeeded() {
   draw();
 }
 
+function tryRotateTile(tileId, dir = 1) {
+  if (!modifierState.active.rotation) return false;
+  if (!imageLoaded || solved || isPaused) return false;
+  if (tileId == null || tileId < 0) return false;
+  if (lockedTiles.has(tileId)) return false;
+
+  ensureModifiersLockedAndRunStarted();
+
+  const next = ((quarterTurnsByTileId[tileId] || 0) + dir) % 4;
+  quarterTurnsByTileId[tileId] = (next + 4) % 4;
+
+  // Count rotation as a move.
+  moves += 1;
+  startTimerIfNeeded();
+  if (!isPaused) {
+    elapsedMs = Date.now() - startTime;
+  }
+
+  lockCorrectTilesNow();
+
+  if (toneEnabled) proxTone.chirpSuccess();
+  if (vibeEnabled) proxVibe.buzzSuccess();
+
+  // Rotation doesn't change clustering, but solve state depends on rotation.
+  if (!solved && !dragState.active && isSolved()) {
+    solved = true;
+    lastSolveMultiplier = getDifficultyMultiplier();
+    lastSolveWasModded = lastSolveMultiplier > 1;
+    statsEndRunOnSolve({
+      sizeKey: `${rows}x${cols}`,
+      moves,
+      elapsedSec: Math.round(elapsedMs / 1000)
+    });
+    if (timerHandle) {
+      clearInterval(timerHandle);
+      timerHandle = null;
+    }
+    persistBestIfNeeded();
+    startSolveAnimation();
+    proxTone.victoryChime();
+    confettiMode = lastSolveWasModded ? "hardcore" : "normal";
+    spawnConfetti(canvas.width / dpr);
+    if (navigator.vibrate) navigator.vibrate(40);
+    speakSolvedLabel();
+  }
+
+  updateStats();
+  draw();
+  return true;
+}
+
 
 // section for proximity tone and vibe feedback during drag.... For low vision accessibility
 
@@ -2257,12 +2393,8 @@ function computeDragCloseness(){
   return 1 - clamp01(d / d0);
 }
 
-
-
-function beginDrag(e) {
-  if (!imageLoaded || solved || isPaused) return;
-
-  // Lock modifiers + start stats on first real interaction (first move)
+function ensureModifiersLockedAndRunStarted(){
+  // Lock modifiers + start stats on first real interaction (first move / rotate)
   if (!modifierState.locked) {
     modifierState.locked = true;
     syncModsUI();
@@ -2276,6 +2408,14 @@ function beginDrag(e) {
     });
     statsRunStarted = true;
   }
+}
+
+
+
+function beginDrag(e) {
+  if (!imageLoaded || solved || isPaused) return;
+
+  ensureModifiersLockedAndRunStarted();
 
   const startClientX = e.clientX;
   const startClientY = e.clientY;
@@ -2293,7 +2433,13 @@ function beginDrag(e) {
     cluster = getClusterFromIndex(startIndex);
   }
 
-  if (clusterHasLockedTile(cluster.members)) return;
+    // If the cluster contains locked tiles, don't block the drag outright.
+  // Only block if the tile we clicked is itself locked.
+  // Otherwise, fall back to dragging just this tile.
+  if (clusterHasLockedTile(cluster.members)) {
+    if (lockedTiles.has(draggedTileId)) return;
+    cluster = { root: draggedTileId, members: [draggedTileId] };
+  }
 
   pendingDrag = {
     pointerId: e.pointerId,
@@ -2394,6 +2540,29 @@ function endDrag(e) {
   if (vibeEnabled) proxVibe.stop();
 
   completeMoveIfNeeded();
+
+  // 🔥 If rotation completed the solve while we were dragging,
+  // fire solve now on release.
+  if (!solved && isSolved()) {
+    solved = true;
+    lastSolveMultiplier = getDifficultyMultiplier();
+    lastSolveWasModded = lastSolveMultiplier > 1;
+
+    statsEndRunOnSolve({
+      sizeKey: `${rows}x${cols}`,
+      moves,
+      elapsedSec: Math.round(elapsedMs / 1000)
+    });
+
+    if (timerHandle) {
+      clearInterval(timerHandle);
+      timerHandle = null;
+    }
+
+    solveAnim.active = true;
+    solveAnim.start = performance.now();
+    spawnConfetti(size);
+  }
 }
 
 
@@ -2556,6 +2725,74 @@ canvas.addEventListener("pointermove", moveDrag);
 canvas.addEventListener("pointerup", endDrag);
 canvas.addEventListener("pointercancel", cancelDrag);
 canvas.addEventListener("lostpointercapture", cancelDrag);
+
+// Track last pointer position for rotate hotkeys.
+canvas.addEventListener(
+  "pointermove",
+  (e) => {
+    lastPointerCanvas = clientToCanvasPoint(e.clientX, e.clientY);
+  },
+  { passive: true }
+);
+
+// Desktop: Right-click to rotate the tile under the cursor.
+canvas.addEventListener("contextmenu", (e) => {
+  if (!modifierState.active.rotation) return;
+  e.preventDefault();
+  const p = clientToCanvasPoint(e.clientX, e.clientY);
+  const idx = boardIndexFromPoint(p.x, p.y);
+  if (idx < 0) return;
+  const tileId = board[idx];
+  tryRotateTile(tileId, 1);
+});
+
+// Desktop: R key rotates the currently dragged tile, or the tile under the cursor.
+document.addEventListener("keydown", (e) => {
+  if (!modifierState.active.rotation) return;
+  if (e.key !== "r" && e.key !== "R") return;
+  if (e.repeat) return;
+
+  // Don't rotate while typing into a form element.
+  const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+  if (tag === "input" || tag === "textarea" || tag === "select") return;
+
+  const tileId = dragState.active ? dragState.draggedTileId : (() => {
+    const idx = boardIndexFromPoint(lastPointerCanvas.x, lastPointerCanvas.y);
+    return idx >= 0 ? board[idx] : -1;
+  })();
+
+  if (tileId >= 0) {
+    e.preventDefault();
+    tryRotateTile(tileId, 1);
+  }
+});
+
+// Mobile: Double-tap to rotate (simple default until two-finger tap is added).
+canvas.addEventListener(
+  "pointerup",
+  (e) => {
+    if (!modifierState.active.rotation) return;
+    if (e.pointerType !== "touch") return;
+    if (dragState.active) return; // dragging already handled elsewhere
+
+    const now = Date.now();
+    const p = clientToCanvasPoint(e.clientX, e.clientY);
+    const dt = now - (lastTouchTap.t || 0);
+    const dist = Math.hypot(p.x - (lastTouchTap.x || 0), p.y - (lastTouchTap.y || 0));
+
+    if (dt < 320 && dist < 18) {
+      const idx = boardIndexFromPoint(p.x, p.y);
+      if (idx >= 0) {
+        const tileId = board[idx];
+        tryRotateTile(tileId, 1);
+      }
+      lastTouchTap = { t: 0, x: 0, y: 0 };
+    } else {
+      lastTouchTap = { t: now, x: p.x, y: p.y };
+    }
+  },
+  { passive: true }
+);
 
 window.addEventListener("resize", resizeCanvas);
 
