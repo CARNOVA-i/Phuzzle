@@ -1,84 +1,127 @@
-# 🧩 Phuzzle
+🧩 Phuzzle
 
-Phuzzle is a refined browser-based photo puzzle game built with vanilla JavaScript and canvas rendering.
+Phuzzle is a system-driven, browser-based photo puzzle game built with vanilla JavaScript and canvas rendering.
 
-Swap tiles, build clusters, and restore the original image. Designed with a frosted glass UI, responsive layout, and subtle sensory guidance for a polished experience.
+Swap tiles, build clusters, manage modifiers, and restore the original image. Designed with a frosted glass UI, responsive layout, and layered sensory feedback for a polished, atmospheric experience.
 
----
+✨ Core Features
 
-## ✨ Features
+Tile swapping with intelligent cluster grouping
 
-- Tile swapping with cluster grouping
-- Multiple collections (Nature, Buildings, Detail, Animals, AI)
-- Adjustable difficulty (3x3 → 6x6)
-- Low Vision mode (high contrast sets)
-- Audio proximity tone
-- Haptic vibe feedback
-- Spoken photo titles on solve
-- Cinematic loading veil
-- Refined splash startup experience (v1.7.0)
+Adjustable board sizes (3×3 → 6×6)
 
----
+Persistent stats tracking (lifetime solves, streaks, highest difficulty)
 
-## 🚀 Run Locally
+Modifier system with locked difficulty multipliers
+
+Cinematic solve animations and confetti
+
+Frosted glass UI with responsive layout
+
+Lightweight, framework-free architecture
+
+🧩 Modifier System (v2.0.0)
+
+Phuzzle now includes a weighted modifier system that increases difficulty and score multipliers:
+
+No Cluster Drag – disables rigid cluster translation
+
+Rotation Mode – tiles may start rotated (upright required to solve)
+
+Fog of War – dynamic pointer-based visibility reveal with cinematic solve bloom
+
+Modifiers arm before first move and lock on first interaction. Difficulty multipliers snapshot at run start.
+
+🌫 Fog of War (New in v2.0.0)
+
+Full-board fog overlay
+
+Dynamic reveal window (mouse / touch)
+
+Soft fade-out on mobile release
+
+Purple live-state tint integration
+
+Cinematic fog dispersal on solve
+
+Weighted at 1.40× difficulty
+
+Fog of War introduces tension, perceptual constraint, and visual payoff.
+
+🎧 Accessibility & Sensory Features
+
+Low Vision mode (high-contrast collections)
+
+Audio proximity tone guidance
+
+Haptic vibration feedback
+
+Spoken photo titles on solve
+
+Accessibility is a first-class system, not an afterthought.
+
+🚀 Run Locally
 
 From the project root:
 
-```bash
 python -m http.server 8000
-```
 
 Then open:
 
-```
 http://localhost:8000
-```
+🌐 Deployment (GitHub Pages)
 
----
+When deploying:
 
-## 🌐 Deployment (GitHub Pages)
+Use relative asset paths
 
-When deploying to GitHub Pages:
+Avoid leading slashes (/)
 
-- Use relative asset paths
-- Avoid leading slashes (`/`)
-- Ensure images are inside `/assets/`
+Ensure images are inside /assets/
 
 Correct:
-```
+
 assets/images/photo.jpg
-```
 
 Incorrect:
-```
+
 /assets/images/photo.jpg
-```
+🛠 Tech Stack
 
----
+HTML5 Canvas rendering
 
-## 🛠 Tech Stack
+Vanilla JavaScript (no frameworks)
 
-- HTML5 Canvas
-- Vanilla JavaScript (no frameworks)
-- CSS glass UI styling
-- GitHub Pages hosting
+Offscreen compositing for visual effects
 
----
+CSS glass UI styling
 
-## 📦 Versioning
+GitHub Pages hosting
+
+📦 Versioning
 
 Phuzzle follows semantic versioning:
 
-- Patch: small fixes
-- Minor: UI/UX improvements or feature additions
-- Major: structural or gameplay changes
+Patch: small fixes
 
-Current release: **v1.8.0**
+Minor: UI/UX improvements or feature additions
 
----
+Major: structural or gameplay system changes
 
-## 🧠 Design Philosophy
+Current release: v2.0.0
 
-Phuzzle is built as a lightweight, framework-free puzzle experience focused on clarity, performance, and polish.
+🧠 Design Philosophy
 
-Every update refines the visual language and tactile feel of interaction.
+Phuzzle is built as a lightweight, performance-focused puzzle system.
+
+Every update refines:
+
+Interaction clarity
+
+Visual tension
+
+Modifier balance
+
+Player progression
+
+The goal is not complexity for its own sake, but layered polish.
