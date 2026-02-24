@@ -1900,13 +1900,12 @@ function drawFogOfWar(size) {
   if (fogState.clearedAfterSolve) return;
 
   const a = fogState.revealAlpha;
-  if (a <= 0.001) return;
 
-  // Base tuning (feel free to tweak)
-  const baseFogAlpha = 0.88;                // density
+  // Base tuning
+  const baseFogAlpha = 0.88;
   const baseRadius = Math.max(28, size * 0.18);
 
-  // Solve effects (bloom + fade)
+  // Solve effects
   let fogAlpha = baseFogAlpha;
   let r = baseRadius;
   let tintBoost = 0;
@@ -1982,8 +1981,8 @@ function drawFogOfWar(size) {
   fogCtx.fillStyle = edge;
   fogCtx.fillRect(0, 0, size, size);
 
-  // Reveal cutout (only if we have a valid point)
-  if (Number.isFinite(fogState.x) && Number.isFinite(fogState.y)) {
+  // Reveal cutout (only when reveal is visible AND we have a valid point)
+  if (a > 0.01 && Number.isFinite(fogState.x) && Number.isFinite(fogState.y)) {
     const x = fogState.x;
     const y = fogState.y;
 
@@ -2007,6 +2006,7 @@ function drawFogOfWar(size) {
     fogCtx.beginPath();
     fogCtx.arc(x, y, r * 0.98, 0, Math.PI * 2);
     fogCtx.stroke();
+    fogCtx.globalAlpha = 1;
   }
 
   fogCtx.restore();
@@ -2534,11 +2534,21 @@ function completeMoveIfNeeded() {
       }
       persistBestIfNeeded();
       startSolveAnimation();
-      proxTone.victoryChime();
+
+      const size = canvas.width / dpr;
+
       confettiMode = lastSolveWasModded ? "hardcore" : "normal";
-      spawnConfetti(canvas.width / dpr);
+
+      // First burst
+      spawnConfetti(size, modifierState.active?.fog ? 1.6 : 1.0);
+
+      // Extra burst only for fog modifier clears
+      if (modifierState.active?.fog) {
+        setTimeout(() => spawnConfetti(size), 140);
+      }
+
+      proxTone.victoryChime();
       if (navigator.vibrate) navigator.vibrate(40);
-      
       speakSolvedLabel();
 
     }
