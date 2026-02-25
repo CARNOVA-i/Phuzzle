@@ -2591,6 +2591,18 @@ function stopSolveAnimation() {
 
 function startSolveAnimation() {
   fogOnSolved();
+
+  // Fog has its own victory animation. Don't run tile fan-out solveAnim on top of it.
+  if (fogIsEnabled()) {
+    solveAnim.active = false;
+    if (solveRaf) {
+      cancelAnimationFrame(solveRaf);
+      solveRaf = 0;
+    }
+    draw(); // crisp solved frame + fog bloom/fade + confetti
+    return;
+  }
+
   solveAnim.active = true;
   solveAnim.start = performance.now();
 
@@ -2607,7 +2619,7 @@ function startSolveAnimation() {
     } else {
       solveAnim.active = false;
       solveRaf = 0;
-      draw(); // final crisp frame
+      draw();
     }
   };
 
