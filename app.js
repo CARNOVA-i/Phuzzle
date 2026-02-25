@@ -2049,8 +2049,8 @@ function drawFogOfWar(size) {
   let revealK = 1;
   if (!fogState.pointerDown) {
     const dt = now - (fogState.lastUpAt || 0);
-    const hold = fogState.lingerHoldMs ?? 220;
-    const fade = fogState.lingerFadeMs ?? 260;
+    const hold = fogState.lingerHoldMs ?? 450;
+    const fade = fogState.lingerFadeMs ?? 350;
 
     if (dt <= hold) {
       revealK = 1; // full reveal during hold
