@@ -806,6 +806,57 @@ body.lv canvas{
   box-shadow: 0 18px 50px rgba(0,0,0,0.45);
 }
 
+.profile-row{
+  display: grid;
+  grid-template-columns: auto 1fr auto auto auto;
+  gap: 8px;
+  align-items: center;
+  margin: 6px 0 10px;
+}
+
+.profile-label{
+  opacity: 0.85;
+  font-size: 13px;
+}
+
+.profile-select{
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  color: var(--text);
+  border: 1px solid rgba(255,255,255,0.14);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.profile-select {
+  color: #ffffff;
+  background-color: rgba(30, 30, 40, 0.95);
+}
+
+/* Style dropdown options */
+.profile-select option {
+  background-color: #1e1e28;
+  color: #ffffff;
+}
+
+@media (max-width: 420px){
+  .profile-row{
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "label select"
+      "new rename"
+      "delete delete";
+  }
+  .profile-label{ grid-area: label; }
+  .profile-select{ grid-area: select; }
+  #profileNewBtn{ grid-area: new; }
+  #profileRenameBtn{ grid-area: rename; }
+  #profileDeleteBtn{ grid-area: delete; }
+}
+
 /* Mods modal */
 
 .mods-note{

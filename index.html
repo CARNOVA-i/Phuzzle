@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Phuzzle</title>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="assets/images/icon.png">
 </head>
 <body>
   <main class="app">
@@ -174,6 +175,13 @@
 <div id="statsOverlay" class="overlay" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-label="Stats">
     <h2 class="modal-title">Stats</h2>
+    <div class="profile-row" aria-label="Profile">
+      <span class="profile-label">Profile</span>
+      <select id="profileSelect" class="profile-select" aria-label="Select profile"></select>
+      <button id="profileNewBtn" class="pill-btn" type="button">New</button>
+      <button id="profileRenameBtn" class="pill-btn" type="button">Rename</button>
+      <button id="profileDeleteBtn" class="pill-btn" type="button">Delete</button>
+    </div>
 
     <div id="statsSummary" class="stats-summary"></div>
 

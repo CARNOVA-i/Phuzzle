@@ -144,7 +144,12 @@
 
 //------------------------------------------------------------------------------------------
 
-import { statsBeginRun, statsEndRunOnSolve, statsGetSnapshot } from "./stats.js";
+import {
+  profilesInit, profilesGetAll, profilesGetActiveId, profilesGetActive,
+  profilesSetActive, profilesCreate, profilesRename, profilesDelete, profilesScopedKey
+} from "./profiles.js";
+
+import { statsBeginRun, statsEndRunOnSolve, statsGetSnapshot, statsAbortRun } from "./stats.js";
 
 
 
@@ -365,6 +370,19 @@ const modRotation = document.getElementById("modRotation");
 const modFog = document.getElementById("modFog");
 const modsNote = document.getElementById("modsNote");
 const modsMult = document.getElementById("modsMult");
+const profileSelect = document.getElementById("profileSelect");
+const profileNewBtn = document.getElementById("profileNewBtn");
+const profileRenameBtn = document.getElementById("profileRenameBtn");
+const profileDeleteBtn = document.getElementById("profileDeleteBtn");
+
+
+
+
+
+profilesInit({ migrateLegacyStatsKey: "phuzzle_stats_v1", defaultName: "Player 1" });
+
+
+
 
 
 let fogCanvas = document.createElement("canvas");
@@ -406,6 +424,35 @@ let confettiActive = false;
 let dpr = Math.max(1, window.devicePixelRatio || 1);
 let currentImage = null; // { src, label }
 let hasStarted = false;
+
+
+
+
+
+function refreshProfileUI(){
+  if (!profileSelect) return;
+
+  const list = profilesGetAll();
+  const activeId = profilesGetActiveId();
+
+  profileSelect.innerHTML = "";
+  for (const p of list) {
+    const opt = document.createElement("option");
+    opt.value = p.id;
+    opt.textContent = p.name;
+    profileSelect.appendChild(opt);
+  }
+
+  if (activeId) profileSelect.value = activeId;
+
+  const onlyOne = list.length <= 1;
+  if (profileDeleteBtn) profileDeleteBtn.disabled = onlyOne;
+}
+
+
+
+
+
 
 
 let drawRaf = 0;
@@ -534,8 +581,17 @@ const fogState = {
   clearedAfterSolve: false, // when true, fog overlay is suppressed until next puzzle/shuffle
   lastT: 0,
   raf: 0,
-  isTouchActive: false
+  isTouchActive: false,
+  pointerDown: false,
+  lastUpAt: 0,
+  lingerMs: 320,
+  touchRadiusBoost: 1.25,
 };
+
+fogState.pointerDown = false;
+fogState.lastUpAt = 0;
+fogState.lingerMs = 320;      // tweak: 250 to 450 feels good
+fogState.touchRadiusBoost = 1.25; // bigger reveal while touching
 
 function fogIsEnabled() {
   return !!modifierState.active.fog;
@@ -593,6 +649,16 @@ function fogOnSolved() {
 
   fogKickAnim();
   requestDraw();
+}
+
+
+function onFogPointerDown() {
+  fogState.pointerDown = true;
+}
+
+function onFogPointerUp() {
+  fogState.pointerDown = false;
+  fogState.lastUpAt = performance.now();
 }
 
 
@@ -929,6 +995,7 @@ function renderStats(){
 }
 
 function openStats(){
+  refreshProfileUI();
   renderStats();
   statsOverlay.hidden = false;
 }
@@ -1072,9 +1139,9 @@ function difficultyKey() {
 
 function bestTimeStorageKey() {
   const src = currentImageSrc() || "unknown";
-  // encode so slashes etc are safe for localStorage keys
   const safe = encodeURIComponent(src);
-  return `phuzzle_best_${safe}_${difficultyKey()}`;
+  const base = `phuzzle_best_${safe}_${difficultyKey()}`;
+  return { scoped: profilesScopedKey(base), legacy: base };
 }
 
 
@@ -1511,6 +1578,19 @@ function computeOffGrid01(x, y, cellW, cellH){
 }
 
 
+function isTileRotationCorrect(tileId) {
+  // quarterTurnsByTileId[tileId] should be 0 when correct
+  const q = (quarterTurnsByTileId?.[tileId] || 0) % 4;
+  return q === 0;
+}
+
+function isTileFullyCorrect(tileId) {
+  const posOk = isTileInCorrectHome(tileId); // whatever your existing position check is
+  if (!rotationModeEnabled()) return posOk;
+  return posOk && isTileRotationCorrect(tileId);
+}
+
+
 function lockCorrectTilesNow() {
   // Recompute locks from scratch each move.
   // This prevents stale locks when a previously locked tile gets rotated later.
@@ -1519,7 +1599,14 @@ function lockCorrectTilesNow() {
   for (let index = 0; index < board.length; index += 1) {
     const tileId = board[index];
     const rot = quarterTurnsByTileId[tileId] || 0;
-    if (tileId === index && rot === 0) lockedTiles.add(tileId);
+    const posOk = (tileId === index);
+    const rotOk = (rot % 4 === 0);
+
+    if (!rotationModeEnabled()) {
+      if (posOk) lockedTiles.add(tileId);
+    } else {
+      if (posOk && rotOk) lockedTiles.add(tileId);
+    }
   }
 }
 
@@ -1912,6 +1999,14 @@ function drawFogOfWar(size) {
 
   const now = performance.now();
 
+    // Mobile linger: after finger lifts, keep reveal for a moment then fade
+  let revealK = 1;
+  if (!fogState.pointerDown) {
+    const dt = now - (fogState.lastUpAt || 0);
+    const linger = fogState.lingerMs || 320;
+    revealK = Math.max(0, 1 - dt / linger);
+  }
+
   // Bloom: expand reveal and slightly lift fog for a cinematic "fog breaks" moment
   if (fogState.solveBloom) {
     const t = (now - fogState.solveBloom.t0) / fogState.solveBloom.dur;
@@ -1940,6 +2035,12 @@ function drawFogOfWar(size) {
       fogState.revealAlpha = 0;
       fogState.clearedAfterSolve = true; // <-- THIS is the key
     }
+  }
+
+    // While finger is down, slightly increase reveal radius on touch devices
+  if (fogState.pointerDown) {
+    const boost = fogState.touchRadiusBoost || 1.25;
+    r = r * boost;
   }
 
   // ---- Draw fog onto offscreen layer ----
@@ -1982,15 +2083,17 @@ function drawFogOfWar(size) {
   fogCtx.fillRect(0, 0, size, size);
 
   // Reveal cutout (only when reveal is visible AND we have a valid point)
-  if (a > 0.01 && Number.isFinite(fogState.x) && Number.isFinite(fogState.y)) {
+    const a2 = a * revealK;
+
+    if (a2 > 0.01 && Number.isFinite(fogState.x) && Number.isFinite(fogState.y)) {
     const x = fogState.x;
     const y = fogState.y;
 
     fogCtx.globalCompositeOperation = "destination-out";
 
     const g = fogCtx.createRadialGradient(x, y, 0, x, y, r);
-    g.addColorStop(0.0, `rgba(0,0,0,${1.0 * a})`);
-    g.addColorStop(0.6, `rgba(0,0,0,${0.85 * a})`);
+    g.addColorStop(0.0, `rgba(0,0,0,${1.0 * a2})`);
+    g.addColorStop(0.6, `rgba(0,0,0,${0.85 * a2})`);
     g.addColorStop(1.0, "rgba(0,0,0,0)");
 
     fogCtx.fillStyle = g;
@@ -2000,7 +2103,7 @@ function drawFogOfWar(size) {
 
     // Rim cue
     fogCtx.globalCompositeOperation = "source-over";
-    fogCtx.globalAlpha = 0.14 * a;
+    fogCtx.globalAlpha = 0.14 * a2;
     fogCtx.strokeStyle = "rgba(255,255,255,1)";
     fogCtx.lineWidth = Math.max(1.5, size * 0.004);
     fogCtx.beginPath();
@@ -2847,6 +2950,10 @@ function beginDrag(e) {
     fogState.x = point.x;
     fogState.y = point.y;
     fogState.isTouchActive = true;
+
+    fogState.pointerDown = true;     // NEW
+    fogState.lastUpAt = 0;           // NEW (resets linger)
+
     fogState.targetAlpha = 1;
     fogState.revealAlpha = 1;
     fogKickAnim();
@@ -2889,8 +2996,11 @@ function moveDrag(e) {
     fogState.x = p.x;
     fogState.y = p.y;
     fogState.isTouchActive = true;
+
+    fogState.pointerDown = true;   // NEW (keeps state consistent)
+    fogState.lastUpAt = 0;         // NEW (don’t allow fade while finger is down)
+
     fogState.targetAlpha = 1;
-    // draw() calls are already happening during drag, but keep it safe for non-drag touches
     requestDraw();
   }
 
@@ -2968,14 +3078,21 @@ function moveDrag(e) {
 }
 
 function endDrag(e) {
-  // Fog of War: on mobile, fade the reveal after release.
+
+  // Fog of War: on mobile, linger reveal after release.
   if (fogIsEnabled() && e.pointerType === "touch") {
     const p = clientToCanvasPoint(e.clientX, e.clientY);
     fogState.x = p.x;
     fogState.y = p.y;
+
+    fogState.pointerDown = false;              // NEW
+    fogState.lastUpAt = performance.now();     // NEW
     fogState.isTouchActive = false;
-    fogState.targetAlpha = 0;
-    fogKickAnim();
+
+    // Do NOT force targetAlpha to 0 here, linger will handle fade
+    fogState.targetAlpha = 1;
+
+    requestDraw(); // ensure we render the linger immediately
   }
 
   // Clear pending drag even if we never activated
@@ -3018,14 +3135,18 @@ function endDrag(e) {
 
 
 function cancelDrag(e) {
-  // Fog of War: if touch is cancelled, fade the reveal.
+  // Fog of War: if touch is cancelled, linger then fade.
   if (fogIsEnabled() && e.pointerType === "touch") {
     const p = clientToCanvasPoint(e.clientX, e.clientY);
     fogState.x = p.x;
     fogState.y = p.y;
+
+    fogState.pointerDown = false;
+    fogState.lastUpAt = performance.now();
     fogState.isTouchActive = false;
-    fogState.targetAlpha = 0;
-    fogKickAnim();
+
+    fogState.targetAlpha = 1; // linger logic will fade reveal
+    requestDraw();
   }
 
   if (dragState.active && dragState.pointerId === e.pointerId) {
@@ -3104,6 +3225,66 @@ function setPressed(btn, on, labelOn, labelOff){
   btn.setAttribute("aria-pressed", on ? "true" : "false");
   btn.textContent = on ? labelOn : labelOff;
 }
+
+
+
+
+profileSelect?.addEventListener("change", () => {
+  const id = profileSelect.value;
+  if (!id) return;
+  profilesSetActive(id);
+
+  statsAbortRun();
+  statsRunStarted = false;
+
+  refreshProfileUI();
+  renderStats();
+  updateBestLabel();
+});
+
+profileNewBtn?.addEventListener("click", () => {
+  const name = window.prompt("New profile name:");
+  if (name == null) return;
+  profilesCreate(name);
+
+  statsAbortRun();
+  statsRunStarted = false;
+
+  refreshProfileUI();
+  renderStats();
+  updateBestLabel();
+});
+
+profileRenameBtn?.addEventListener("click", () => {
+  const active = profilesGetActive();
+  const current = active?.name || "";
+  const name = window.prompt("Rename profile:", current);
+  if (name == null) return;
+  if (!active?.id) return;
+  profilesRename(active.id, name);
+  refreshProfileUI();
+});
+
+profileDeleteBtn?.addEventListener("click", () => {
+  const list = profilesGetAll();
+  if (list.length <= 1) return;
+  const active = profilesGetActive();
+  if (!active?.id) return;
+  const ok = window.confirm(`Delete profile "${active.name}"? This cannot be undone.`);
+  if (!ok) return;
+  profilesDelete(active.id);
+
+  statsAbortRun();
+  statsRunStarted = false;
+
+  refreshProfileUI();
+  renderStats();
+  updateBestLabel();
+});
+
+
+
+
 
 lvBtn?.addEventListener("click", () => {
 

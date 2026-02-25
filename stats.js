@@ -1,7 +1,9 @@
 // stats.js
 // Phuzzle Stats v1 (localStorage, no backend)
 
-const PHUZZLE_STATS_KEY = "phuzzle_stats_v1";
+import { profilesScopedKey, profilesGetActiveId } from "./profiles.js";
+
+const PHUZZLE_STATS_KEY_BASE = "phuzzle_stats_v1";
 
 const DEFAULT_STATS = {
   totalSolves: 0,
@@ -25,6 +27,13 @@ const DEFAULT_STATS = {
 
 let activeRun = null; // transient state for current puzzle only (not saved until solve)
 
+function statsStorageKey() {
+  const activeId = profilesGetActiveId();
+  // Fallback: if profiles not initialized yet, use legacy key
+  return activeId ? profilesScopedKey(PHUZZLE_STATS_KEY_BASE, activeId) : PHUZZLE_STATS_KEY_BASE;
+}
+
+
 function safeParse(json) {
   try { return JSON.parse(json); } catch { return null; }
 }
@@ -46,13 +55,17 @@ function deepMerge(base, incoming) {
 }
 
 export function loadStats() {
-  const raw = localStorage.getItem(PHUZZLE_STATS_KEY);
+  const raw = localStorage.getItem(statsStorageKey());
   const parsed = raw ? safeParse(raw) : null;
   return deepMerge(DEFAULT_STATS, parsed);
 }
 
 export function saveStats(stats) {
-  localStorage.setItem(PHUZZLE_STATS_KEY, JSON.stringify(stats));
+  localStorage.setItem(statsStorageKey(), JSON.stringify(stats));
+}
+
+export function statsAbortRun() {
+  activeRun = null;
 }
 
 function todayLocalISO() {
