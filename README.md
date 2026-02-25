@@ -1,64 +1,106 @@
 🧩 Phuzzle
 
-Phuzzle is a system-driven, browser-based photo puzzle game built with vanilla JavaScript and canvas rendering.
+Phuzzle is a system-driven, browser-based photo puzzle game built with vanilla JavaScript and HTML5 canvas rendering.
 
-Swap tiles, build clusters, manage modifiers, and restore the original image. Designed with a frosted glass UI, responsive layout, and layered sensory feedback for a polished, atmospheric experience.
+Swap tiles. Build clusters. Engage modifiers. Restore the original image.
+
+Designed with a frosted glass interface, responsive layout, and layered sensory feedback, Phuzzle blends tactile interaction with cinematic polish.
 
 ✨ Core Features
 
-Tile swapping with intelligent cluster grouping
+Intelligent tile swapping with cluster grouping
 
 Adjustable board sizes (3×3 → 6×6)
 
-Persistent stats tracking (lifetime solves, streaks, highest difficulty)
+Persistent lifetime stats and streak tracking
 
-Modifier system with locked difficulty multipliers
+Weighted modifier system with difficulty multipliers
 
 Cinematic solve animations and confetti
 
-Frosted glass UI with responsive layout
+Frosted glass UI with responsive mobile layout
 
-Lightweight, framework-free architecture
+Framework-free, performance-focused architecture
 
-🧩 Modifier System (v2.0.0)
+👤 Local Profiles System (New in v2.1.0)
 
-Phuzzle now includes a weighted modifier system that increases difficulty and score multipliers:
+Phuzzle now supports multiple local player profiles.
 
-No Cluster Drag – disables rigid cluster translation
+Profiles are stored entirely in the browser using localStorage. No accounts. No servers. No data leaves the device.
 
-Rotation Mode – tiles may start rotated (upright required to solve)
+Each profile tracks independently:
 
-Fog of War – dynamic pointer-based visibility reveal with cinematic solve bloom
+Lifetime solves
 
-Modifiers arm before first move and lock on first interaction. Difficulty multipliers snapshot at run start.
+Modifier clears
 
-🌫 Fog of War (New in v2.0.0)
+Highest difficulty reached
+
+Current and best streak
+
+Total play time
+
+Best time and best moves per grid size
+
+Users can:
+
+Create new profiles
+
+Rename profiles
+
+Delete profiles
+
+Switch instantly between players
+
+This system enables family play, isolated progress tracking, and future unlockable mechanics — all without external infrastructure.
+
+🧩 Modifier System (v2.0+)
+
+Phuzzle includes a weighted modifier framework that increases difficulty and score multipliers:
+
+No Cluster Drag
+Disables rigid cluster translation
+
+Rotation Mode
+Tiles may start rotated. Upright orientation required to lock
+
+Fog of War
+Dynamic pointer-based reveal window with cinematic bloom on solve
+
+Modifiers arm before the first move and lock on first interaction.
+Difficulty multipliers snapshot at run start.
+
+🌫 Fog of War (Enhanced in v2.1.0)
 
 Full-board fog overlay
 
-Dynamic reveal window (mouse / touch)
+Dynamic reveal window (mouse and touch)
 
-Soft fade-out on mobile release
+Soft linger fade on mobile release
+
+Increased touch reveal radius for better ergonomics
 
 Purple live-state tint integration
 
 Cinematic fog dispersal on solve
 
-Weighted at 1.40× difficulty
-
 Fog of War introduces tension, perceptual constraint, and visual payoff.
 
-🎧 Accessibility & Sensory Features
+Weighted at 1.40× difficulty.
 
-Low Vision mode (high-contrast collections)
+🎧 Accessibility & Sensory Systems
+
+Accessibility is a first-class system.
+
+Low Vision mode with high-contrast collections
 
 Audio proximity tone guidance
 
 Haptic vibration feedback
 
-Spoken photo titles on solve
+Spoken image titles on solve
 
-Accessibility is a first-class system, not an afterthought.
+These systems layer visual, audio, and tactile feedback to support broader interaction clarity.
 
 🚀 Run Locally
 
@@ -75,7 +117,7 @@ When deploying:
 
 Use relative asset paths
 
-Avoid leading slashes (/)
+Avoid leading slashes
 
 Ensure images are inside /assets/
 
@@ -92,9 +134,9 @@ HTML5 Canvas rendering
 
 Vanilla JavaScript (no frameworks)
 
-Offscreen compositing for visual effects
+Offscreen compositing for layered visual effects
 
-CSS glass UI styling
+CSS frosted glass UI styling
 
 GitHub Pages hosting
 
@@ -102,13 +144,13 @@ GitHub Pages hosting
 
 Phuzzle follows semantic versioning:
 
-Patch: small fixes
+Patch: fixes and refinements
 
-Minor: UI/UX improvements or feature additions
+Minor: feature additions and UX evolution
 
 Major: structural or gameplay system changes
 
-Current release: v2.0.0
+Current release: v2.1.0
 
 🧠 Design Philosophy
 
