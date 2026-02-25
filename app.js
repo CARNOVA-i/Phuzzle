@@ -570,6 +570,11 @@ splashImg.src = splashUrl;
 
 const lockedTiles = new Set();
 
+window.__phuzzle = window.__phuzzle || {};
+window.__phuzzle.getLockedCount = () => lockedTiles.size;
+window.__phuzzle.getBoardLen = () => board.length;
+window.__phuzzle.isSolved = () => isSolved();
+
 const fogState = {
   // Fog modifier state (canvas overlay only)
   x: 0,
@@ -592,6 +597,13 @@ fogState.pointerDown = false;
 fogState.lastUpAt = 0;
 fogState.lingerMs = 320;      // tweak: 250 to 450 feels good
 fogState.touchRadiusBoost = 1.25; // bigger reveal while touching
+
+
+
+function rotationModeEnabled() {
+  return !!modifierState.active.rotation;
+}
+
 
 function fogIsEnabled() {
   return !!modifierState.active.fog;
@@ -1144,6 +1156,22 @@ function bestTimeStorageKey() {
   return { scoped: profilesScopedKey(base), legacy: base };
 }
 
+function readBestMs() {
+  const key = bestTimeStorageKey(); // { scoped, legacy }
+
+  const rawScoped = localStorage.getItem(key.scoped);
+  if (rawScoped != null) return Number(rawScoped);
+
+  const rawLegacy = localStorage.getItem(key.legacy);
+  if (rawLegacy != null) {
+    // migrate once
+    localStorage.setItem(key.scoped, rawLegacy);
+    localStorage.removeItem(key.legacy);
+    return Number(rawLegacy);
+  }
+
+  return NaN;
+}
 
 function formatTime(ms) {
   const total = Math.floor(ms / 1000);
@@ -1158,20 +1186,18 @@ function updateStats() {
 }
 
 function updateBestLabel() {
-  const raw = localStorage.getItem(bestTimeStorageKey());
-  if (!raw) {
-    bestLabel.textContent = "Best: --:--";
-    return;
-  }
-  const best = Number(raw);
-  bestLabel.textContent = Number.isFinite(best) ? `Best: ${formatTime(best)}` : "Best: --:--";
+  const best = readBestMs();
+  bestLabel.textContent = Number.isFinite(best)
+    ? `Best: ${formatTime(best)}`
+    : "Best: --:--";
 }
 
 function persistBestIfNeeded() {
   const key = bestTimeStorageKey();
-  const previous = Number(localStorage.getItem(key));
+  const previous = readBestMs();
+
   if (!Number.isFinite(previous) || elapsedMs < previous) {
-    localStorage.setItem(key, String(elapsedMs));
+    localStorage.setItem(key.scoped, String(elapsedMs));
     updateBestLabel();
   }
 }
@@ -1326,10 +1352,15 @@ function initializeSolvedBoard() {
 }
 
 function isSolved() {
+  const rotationOn = !!modifierState.active.rotation;
+
   for (let i = 0; i < board.length; i += 1) {
     if (board[i] !== i) return false;
-    const tileId = board[i];
-    if ((quarterTurnsByTileId[tileId] || 0) !== 0) return false;
+
+    if (rotationOn) {
+      const tileId = board[i];
+      if ((quarterTurnsByTileId[tileId] || 0) !== 0) return false;
+    }
   }
   return true;
 }
@@ -1592,21 +1623,19 @@ function isTileFullyCorrect(tileId) {
 
 
 function lockCorrectTilesNow() {
-  // Recompute locks from scratch each move.
-  // This prevents stale locks when a previously locked tile gets rotated later.
   lockedTiles.clear();
+
+  const rotationOn = rotationModeEnabled && rotationModeEnabled(); // if you added the helper
+  // OR: const rotationOn = !!modifierState.active.rotation;
 
   for (let index = 0; index < board.length; index += 1) {
     const tileId = board[index];
     const rot = quarterTurnsByTileId[tileId] || 0;
-    const posOk = (tileId === index);
-    const rotOk = (rot % 4 === 0);
 
-    if (!rotationModeEnabled()) {
-      if (posOk) lockedTiles.add(tileId);
-    } else {
-      if (posOk && rotOk) lockedTiles.add(tileId);
-    }
+    const posCorrect = (tileId === index);
+    const rotCorrect = (!rotationOn) || (rot === 0);
+
+    if (posCorrect && rotCorrect) lockedTiles.add(tileId);
   }
 }
 
@@ -3109,8 +3138,7 @@ function endDrag(e) {
 
   completeMoveIfNeeded();
 
-  // 🔥 If rotation completed the solve while we were dragging,
-  // fire solve now on release.
+  // If a solve becomes true right on release (ex: rotation edge cases), fire the full solve sequence.
   if (!solved && isSolved()) {
     solved = true;
     lastSolveMultiplier = getDifficultyMultiplier();
@@ -3127,9 +3155,24 @@ function endDrag(e) {
       timerHandle = null;
     }
 
-    solveAnim.active = true;
-    solveAnim.start = performance.now();
+    persistBestIfNeeded();
+    startSolveAnimation();
+
+    const size = canvas.width / dpr;
+    confettiMode = lastSolveWasModded ? "hardcore" : "normal";
+
+    // Match your main solve confetti behavior
     spawnConfetti(size);
+    if (modifierState.active?.fog) {
+      setTimeout(() => spawnConfetti(size), 140);
+    }
+
+    proxTone.victoryChime();
+    if (navigator.vibrate) navigator.vibrate(40);
+    speakSolvedLabel();
+
+    updateStats();
+    draw();
   }
 }
 
