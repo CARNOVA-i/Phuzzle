@@ -576,20 +576,21 @@ window.__phuzzle.getBoardLen = () => board.length;
 window.__phuzzle.isSolved = () => isSolved();
 
 const fogState = {
-  // Fog modifier state (canvas overlay only)
   x: 0,
   y: 0,
-  revealAlpha: 0,  // 0..1 (0 = no reveal window)
-  targetAlpha: 0,  // where revealAlpha is easing toward
-  solveBloom: null, // { t0, dur } when solved: expands reveal + reduces fog briefly
-  solveFade: null,  // { t0, dur } when solved: fog fades away
-  clearedAfterSolve: false, // when true, fog overlay is suppressed until next puzzle/shuffle
+  revealAlpha: 0,
+  targetAlpha: 0,
+  solveBloom: null,
+  solveFade: null,
+  clearedAfterSolve: false,
   lastT: 0,
   raf: 0,
   isTouchActive: false,
   pointerDown: false,
   lastUpAt: 0,
   lingerMs: 320,
+  lingerHoldMs: 220,
+  lingerFadeMs: 260,
   touchRadiusBoost: 1.25,
 };
 
@@ -632,7 +633,15 @@ function fogKickAnim() {
     const alphaStillMoving = Math.abs(fogState.targetAlpha - fogState.revealAlpha) > 0.01;
     const solveAnimating = !!fogState.solveBloom || !!fogState.solveFade;
 
-    if (alphaStillMoving || solveAnimating) {
+    // keep drawing during linger so revealK updates on mobile
+    const hold = fogState.lingerHoldMs ?? 220;
+    const fade = fogState.lingerFadeMs ?? 260;
+    const lingerAnimating =
+      !fogState.pointerDown &&
+      fogState.lastUpAt &&
+      (now - fogState.lastUpAt) < (hold + fade);
+
+    if (alphaStillMoving || solveAnimating || lingerAnimating) {
       fogState.raf = requestAnimationFrame(tick);
     } else {
       fogState.revealAlpha = fogState.targetAlpha;
@@ -1378,6 +1387,14 @@ function rowColToIndex(row, col) {
 }
 
 function isMatedPair(indexA, indexB) {
+  // If Rotation Mode is on, rotated tiles cannot "mate" into clusters
+  if (rotationModeEnabled()) {
+    const tileA = board[indexA];
+    const tileB = board[indexB];
+    if ((quarterTurnsByTileId[tileA] || 0) !== 0) return false;
+    if ((quarterTurnsByTileId[tileB] || 0) !== 0) return false;
+  }
+
   const a = indexToRowCol(indexA);
   const b = indexToRowCol(indexB);
   const dRow = b.row - a.row;
@@ -2028,12 +2045,19 @@ function drawFogOfWar(size) {
 
   const now = performance.now();
 
-    // Mobile linger: after finger lifts, keep reveal for a moment then fade
+  // Mobile linger: after finger lifts, keep reveal for a moment then fade
   let revealK = 1;
   if (!fogState.pointerDown) {
     const dt = now - (fogState.lastUpAt || 0);
-    const linger = fogState.lingerMs || 320;
-    revealK = Math.max(0, 1 - dt / linger);
+    const hold = fogState.lingerHoldMs ?? 220;
+    const fade = fogState.lingerFadeMs ?? 260;
+
+    if (dt <= hold) {
+      revealK = 1; // full reveal during hold
+    } else {
+      const t = (dt - hold) / Math.max(1, fade);
+      revealK = Math.max(0, 1 - t); // fade to 0
+    }
   }
 
   // Bloom: expand reveal and slightly lift fog for a cinematic "fog breaks" moment
@@ -3110,33 +3134,47 @@ function endDrag(e) {
 
   // Fog of War: on mobile, linger reveal after release.
   if (fogIsEnabled() && e.pointerType === "touch") {
-    const p = clientToCanvasPoint(e.clientX, e.clientY);
-    fogState.x = p.x;
-    fogState.y = p.y;
 
-    fogState.pointerDown = false;              // NEW
-    fogState.lastUpAt = performance.now();     // NEW
+    // On iOS, coords can be stale on release; only update if valid
+    if (Number.isFinite(e.clientX) && Number.isFinite(e.clientY) && (e.clientX || e.clientY)) {
+      const p = clientToCanvasPoint(e.clientX, e.clientY);
+      fogState.x = p.x;
+      fogState.y = p.y;
+    }
+
+    fogState.pointerDown = false;
+    fogState.lastUpAt = performance.now();
     fogState.isTouchActive = false;
 
-    // Do NOT force targetAlpha to 0 here, linger will handle fade
-    fogState.targetAlpha = 1;
-
-    requestDraw(); // ensure we render the linger immediately
+    fogState.targetAlpha = 0; // release: linger then fade
+    fogKickAnim();            // ensures linger redraw loop
+    requestDraw();
   }
 
   // Clear pending drag even if we never activated
   if (pendingDrag && pendingDrag.pointerId === e.pointerId) pendingDrag = null;
 
-  if (!dragState.active || dragState.pointerId !== e.pointerId) return;
+  // iOS can fire pointercancel or lose capture and we still need to finalize.
+  // Only bail if there is truly no active drag AND no pending drag for this pointer.
+  const isOurPointer =
+    (dragState.pointerId === e.pointerId) ||
+    (pendingDrag && pendingDrag.pointerId === e.pointerId);
 
+  if (!isOurPointer) return;
+
+  // Release capture if we have it
   if (canvas.hasPointerCapture?.(e.pointerId)) {
     canvas.releasePointerCapture(e.pointerId);
   }
 
-  if (toneEnabled) proxTone.stop();
-  if (vibeEnabled) proxVibe.stop();
+    // Finalize the move FIRST (completeMoveIfNeeded will reset drag state)
+    completeMoveIfNeeded();
 
-  completeMoveIfNeeded();
+    if (toneEnabled) proxTone.stop();
+    if (vibeEnabled) proxVibe.stop();
+
+    lockCorrectTilesNow();
+    requestDraw();
 
   // If a solve becomes true right on release (ex: rotation edge cases), fire the full solve sequence.
   if (!solved && isSolved()) {
@@ -3178,28 +3216,79 @@ function endDrag(e) {
 
 
 function cancelDrag(e) {
-  // Fog of War: if touch is cancelled, linger then fade.
+  if (pendingDrag && pendingDrag.pointerId === e.pointerId) pendingDrag = null;
+  // Fog of War: if touch is cancelled, linger then fade
   if (fogIsEnabled() && e.pointerType === "touch") {
-    const p = clientToCanvasPoint(e.clientX, e.clientY);
-    fogState.x = p.x;
-    fogState.y = p.y;
+
+    // On iOS pointercancel can have junk coords; only update x/y if valid
+    if (Number.isFinite(e.clientX) && Number.isFinite(e.clientY) && (e.clientX || e.clientY)) {
+      const p = clientToCanvasPoint(e.clientX, e.clientY);
+      fogState.x = p.x;
+      fogState.y = p.y;
+    }
+    // else: keep last known fogState.x/y for the linger
 
     fogState.pointerDown = false;
     fogState.lastUpAt = performance.now();
     fogState.isTouchActive = false;
 
-    fogState.targetAlpha = 1; // linger logic will fade reveal
+    fogState.targetAlpha = 0; // fade out after linger
+    fogKickAnim();
     requestDraw();
   }
 
-  if (dragState.active && dragState.pointerId === e.pointerId) {
-    if (canvas.hasPointerCapture?.(e.pointerId)) {
-      canvas.releasePointerCapture(e.pointerId);
-    }
+  const isOurPointer =
+    (dragState.pointerId === e.pointerId) ||
+    (pendingDrag && pendingDrag.pointerId === e.pointerId);
+
+  if (!isOurPointer) return;
+
+  if (canvas.hasPointerCapture?.(e.pointerId)) {
+    canvas.releasePointerCapture(e.pointerId);
+  }
+
+    // If we were actively dragging, try to finalize the move (same path as pointerup)
+    completeMoveIfNeeded();
+
     if (toneEnabled) proxTone.stop();
     if (vibeEnabled) proxVibe.stop();
 
-    resetDragState();
+    lockCorrectTilesNow();
+    requestDraw();
+
+  // Solve fallback for iOS cancel cases (rotation edge)
+  if (!solved && isSolved()) {
+    solved = true;
+    lastSolveMultiplier = getDifficultyMultiplier();
+    lastSolveWasModded = lastSolveMultiplier > 1;
+
+    statsEndRunOnSolve({
+      sizeKey: `${rows}x${cols}`,
+      moves,
+      elapsedSec: Math.round(elapsedMs / 1000)
+    });
+
+    if (timerHandle) {
+      clearInterval(timerHandle);
+      timerHandle = null;
+    }
+
+    persistBestIfNeeded();
+    startSolveAnimation();
+
+    const size = canvas.width / dpr;
+    confettiMode = lastSolveWasModded ? "hardcore" : "normal";
+
+    spawnConfetti(size);
+    if (modifierState.active?.fog) {
+      setTimeout(() => spawnConfetti(size), 140);
+    }
+
+    proxTone.victoryChime();
+    if (navigator.vibrate) navigator.vibrate(40);
+    speakSolvedLabel();
+
+    updateStats();
     draw();
   }
 }
