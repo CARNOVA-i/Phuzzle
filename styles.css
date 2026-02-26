@@ -904,6 +904,26 @@ body.lv canvas{
   -webkit-backdrop-filter: blur(10px);
 }
 
+@media (max-width: 600px){
+  .overlay{
+    height: 100dvh;
+    max-height: 100dvh;
+
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+
+    place-items: start center;  /* top align, still centered horizontally */
+    padding: 16px 14px;
+    box-sizing: border-box;
+  }
+
+  .overlay .modal{
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 .overlay[hidden]{
   display: none !important;
 }
