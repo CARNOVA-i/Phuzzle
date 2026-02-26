@@ -374,6 +374,9 @@ const profileSelect = document.getElementById("profileSelect");
 const profileNewBtn = document.getElementById("profileNewBtn");
 const profileRenameBtn = document.getElementById("profileRenameBtn");
 const profileDeleteBtn = document.getElementById("profileDeleteBtn");
+const modsHelpPanel = document.getElementById("modsHelpPanel");
+const modsHelpTitle = document.getElementById("modsHelpTitle");
+const modsHelpBody  = document.getElementById("modsHelpBody");
 
 
 
@@ -548,6 +551,11 @@ function openMods(){
   syncModsUI();
   modifiersOverlay.hidden = false;
   setOrbOpen(false);
+
+  if (modsHelpTitle && modsHelpBody) {
+    modsHelpTitle.textContent = "Modifier help";
+    modsHelpBody.textContent = "Click or tap a ? to see what it does.";
+  }
 }
 
 function closeMods(){
@@ -555,6 +563,44 @@ function closeMods(){
   modifiersOverlay.hidden = true;
   syncModsUI();
 }
+
+function setupModsHelpPanel(){
+  if (!modifiersOverlay || !modsHelpPanel || !modsHelpTitle || !modsHelpBody) return;
+
+  const setHelpFromBtn = (btn) => {
+    const title = btn.getAttribute("data-title") || "Modifier help";
+    const body  = btn.getAttribute("data-help")  || "Click or tap a ? to see what it does.";
+    modsHelpTitle.textContent = title;
+    modsHelpBody.textContent = body;
+  };
+
+  modifiersOverlay.addEventListener("click", (e) => {
+    const btn = e.target.closest(".mods-help");
+    if (!btn) return;
+
+    // stop the label from toggling the checkbox
+    e.preventDefault();
+    e.stopPropagation();
+
+    setHelpFromBtn(btn);
+  });
+
+  // Desktop hover support
+  modifiersOverlay.addEventListener("mouseover", (e) => {
+    const btn = e.target.closest(".mods-help");
+    if (!btn) return;
+    setHelpFromBtn(btn);
+  });
+
+  // Keyboard focus support
+  modifiersOverlay.addEventListener("focusin", (e) => {
+    const btn = e.target.closest(".mods-help");
+    if (!btn) return;
+    setHelpFromBtn(btn);
+  });
+}
+
+setupModsHelpPanel();
 
 
 const splashImg = new Image();
@@ -1132,7 +1178,52 @@ modFog?.addEventListener("change", () => {
   requestDraw();
 });
 
+function setupModsTooltips(){
+  if (!modifiersOverlay) return;
 
+  const closeAll = () => {
+    modifiersOverlay.querySelectorAll(".mods-item.tip-open")
+      .forEach(el => el.classList.remove("tip-open"));
+  };
+
+  // Tap the ? to toggle tooltip (and do NOT toggle the checkbox)
+  modifiersOverlay.addEventListener("click", (e) => {
+    const btn = e.target.closest(".mods-help");
+    if (!btn) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const row = btn.closest(".mods-item");
+    if (!row) return;
+
+    const isOpen = row.classList.contains("tip-open");
+    closeAll();
+    if (!isOpen) row.classList.add("tip-open");
+  });
+
+  // Click elsewhere inside the modal closes open tips (but keeps modal open)
+  modifiersOverlay.addEventListener("click", (e) => {
+    if (e.target.closest(".mods-tip")) return;
+    if (e.target.closest(".mods-help")) return;
+    closeAll();
+  });
+
+  // Escape closes tips first, then your existing Escape closes the modal
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    closeAll();
+  });
+
+  // Optional: when closing the modal, also close tips
+  const oldCloseMods = closeMods;
+  closeMods = function(){
+    closeAll();
+    oldCloseMods();
+  };
+}
+
+setupModsTooltips();
 
 
 function isGracePhoto() {
@@ -2047,16 +2138,18 @@ function drawFogOfWar(size) {
 
   // Mobile linger: after finger lifts, keep reveal for a moment then fade
   let revealK = 1;
-  if (!fogState.pointerDown) {
+
+  // Only apply linger behavior for touch interaction
+  if (fogState.isTouchActive && !fogState.pointerDown) {
     const dt = now - (fogState.lastUpAt || 0);
     const hold = fogState.lingerHoldMs ?? 1150;
     const fade = fogState.lingerFadeMs ?? 350;
 
     if (dt <= hold) {
-      revealK = 1; // full reveal during hold
+      revealK = 1;
     } else {
       const t = (dt - hold) / Math.max(1, fade);
-      revealK = Math.max(0, 1 - t); // fade to 0
+      revealK = Math.max(0, 1 - t);
     }
   }
 
@@ -2138,9 +2231,9 @@ function drawFogOfWar(size) {
   // Reveal cutout (only when reveal is visible AND we have a valid point)
     const a2 = a * revealK;
 
-    if (a2 > 0.01 && Number.isFinite(fogState.x) && Number.isFinite(fogState.y)) {
     const x = fogState.x;
     const y = fogState.y;
+    if (a2 > 0.01 && Number.isFinite(x) && Number.isFinite(y)) {
 
     fogCtx.globalCompositeOperation = "destination-out";
 
@@ -3021,6 +3114,9 @@ function beginDrag(e) {
 
     fogState.targetAlpha = 1;
     fogState.revealAlpha = 1;
+    fogState.hoverX = null;
+    fogState.hoverY = null;
+    fogState.hoverAt = 0;
     fogKickAnim();
   }
   const startIndex = boardIndexFromPoint(point.x, point.y);
@@ -3371,6 +3467,27 @@ function setPressed(btn, on, labelOn, labelOff){
 }
 
 
+// -----------------------------------------------------------------------------------------------------
+//
+//
+//                      EVENT Listeners
+//
+//
+//------------------------------------------------------------------------------------------------------
+
+canvas.addEventListener("pointermove", (e) => {
+  // Only do hover tracking for mouse (touch updates during drag anyway)
+  if (e.pointerType !== "mouse") return;
+
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+
+  // If your draw uses size in device pixels, keep dpr. If not, remove the * dpr.
+  fogState.x = (e.clientX - rect.left) * dpr;
+  fogState.y = (e.clientY - rect.top) * dpr;
+
+  requestDraw();
+}, { passive: true });
 
 
 profileSelect?.addEventListener("change", () => {

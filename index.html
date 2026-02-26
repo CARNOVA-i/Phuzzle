@@ -198,24 +198,54 @@
 </div>
 
 <div id="modifiersOverlay" class="overlay" hidden>
+
   <div class="modal" role="dialog" aria-modal="true" aria-label="Modifiers">
     <h2 class="modal-title">Modifiers</h2>
 
     <div id="modsNote" class="mods-note"></div>
 
-    <label class="mods-item">
+    <div id="modsHelpPanel" class="mods-help-panel" aria-live="polite">
+      <div id="modsHelpTitle" class="mods-help-title">Modifier help</div>
+      <div id="modsHelpBody" class="mods-help-body">Click or tap a ? to see what it does.</div>
+    </div>
+
+    <label class="mods-item" data-mod="noCluster">
       <input id="modNoCluster" type="checkbox" />
       <span>No Cluster Drag</span>
+
+      <button
+        type="button"
+        class="mods-help"
+        aria-label="What does No Cluster Drag do?"
+        data-title="No Cluster Drag"
+        data-help="Disables moving linked groups. You must place pieces one at a time, even if they are already connected."
+      >?</button>
     </label>
 
-    <label class="mods-item">
+    <label class="mods-item" data-mod="rotation">
       <input id="modRotation" type="checkbox" />
       <span>Rotation Mode</span>
+
+      <button
+        type="button"
+        class="mods-help"
+        aria-label="What does Rotation Mode do?"
+        data-title="Rotation Mode"
+        data-help="Pieces can be rotated. Correct placement requires correct orientation as well as position."
+      >?</button>
     </label>
 
-    <label class="mods-item">
+    <label class="mods-item" data-mod="fog">
       <input id="modFog" type="checkbox" />
       <span>Fog of War</span>
+
+      <button
+        type="button"
+        class="mods-help"
+        aria-label="What does Fog of War do?"
+        data-title="Fog of War"
+        data-help="The board is obscured except near your cursor or touch. Forces local scanning and memory over global view."
+      >?</button>
     </label>
 
     <div class="mods-footer">

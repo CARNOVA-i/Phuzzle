@@ -1,169 +1,171 @@
 🧩 Phuzzle
 
-Phuzzle is a system-driven, browser-based photo puzzle game built with vanilla JavaScript and HTML5 canvas rendering.
+A modern, accessible, glass-UI puzzle game built with intention.
 
-Swap tiles. Build clusters. Engage modifiers. Restore the original image.
+Originally created as a small project, Phuzzle evolved into a polished web-based puzzle experience focused on craftsmanship, accessibility, and thoughtful UX.
 
-Designed with a frosted glass interface, responsive layout, and layered sensory feedback, Phuzzle blends tactile interaction with cinematic polish.
+✨ What Makes It Different
 
-✨ Core Features
+Phuzzle is not just a jigsaw implementation. It’s built around:
 
-Intelligent tile swapping with cluster grouping
+🎯 Clean, responsive interaction
 
-Adjustable board sizes (3×3 → 6×6)
+♿ Accessibility-focused feedback systems
 
-Persistent lifetime stats and streak tracking
+🧠 Skill-based modifiers
 
-Weighted modifier system with difficulty multipliers
+📊 Progress tracking
 
-Cinematic solve animations and confetti
+🧊 Cohesive glass UI system
 
-Frosted glass UI with responsive mobile layout
+📱 Mobile-first interaction tuning
 
-Framework-free, performance-focused architecture
+Every design decision prioritizes feel, clarity, and long-term extensibility.
 
-👤 Local Profiles System (New in v2.1.0)
+🛠 Core Features
+🎮 Puzzle System
 
-Phuzzle now supports multiple local player profiles.
+Dynamic grid sizing
 
-Profiles are stored entirely in the browser using localStorage. No accounts. No servers. No data leaves the device.
+Smooth drag mechanics
 
-Each profile tracks independently:
+Cluster linking logic
 
-Lifetime solves
+Solve detection with effects
 
-Modifier clears
+Rotation mode support
 
-Highest difficulty reached
+🧩 Modifiers
 
-Current and best streak
-
-Total play time
-
-Best time and best moves per grid size
-
-Users can:
-
-Create new profiles
-
-Rename profiles
-
-Delete profiles
-
-Switch instantly between players
-
-This system enables family play, isolated progress tracking, and future unlockable mechanics — all without external infrastructure.
-
-🧩 Modifier System (v2.0+)
-
-Phuzzle includes a weighted modifier framework that increases difficulty and score multipliers:
+Enable additional challenge modes before starting a puzzle:
 
 No Cluster Drag
-Disables rigid cluster translation
+Forces individual placement even when pieces are connected.
 
 Rotation Mode
-Tiles may start rotated. Upright orientation required to lock
+Pieces must be correctly oriented and positioned.
 
 Fog of War
-Dynamic pointer-based reveal window with cinematic bloom on solve
+Obscures the board except near cursor or touch location.
 
-Modifiers arm before the first move and lock on first interaction.
-Difficulty multipliers snapshot at run start.
+Difficulty multiplier updates dynamically based on selected modifiers.
 
-🌫 Fog of War (Enhanced in v2.1.0)
+♿ Accessibility
 
-Full-board fog overlay
+Phuzzle was designed with inclusivity in mind.
 
-Dynamic reveal window (mouse and touch)
+Tone feedback on correct placement
 
-Soft linger fade on mobile release
+Visual clarity prioritization
 
-Increased touch reveal radius for better ergonomics
+Controlled blur usage
 
-Purple live-state tint integration
+Readable overlay hierarchy
 
-Cinematic fog dispersal on solve
+Stable layout behavior (no UI jump)
 
-Fog of War introduces tension, perceptual constraint, and visual payoff.
+Touch-optimized mobile interactions
 
-Weighted at 1.40× difficulty.
+Accessibility is not an add-on — it is part of the foundation.
 
-🎧 Accessibility & Sensory Systems
+📊 Stats & Progress
 
-Accessibility is a first-class system.
+Per-session tracking
 
-Low Vision mode with high-contrast collections
+Modifier-aware difficulty scaling
 
-Audio proximity tone guidance
+Extendable local profile system (in progress)
 
-Haptic vibration feedback
+Architecture prepared for unlockables and progression systems
 
-Spoken image titles on solve
+🧊 UI System
 
-These systems layer visual, audio, and tactile feedback to support broader interaction clarity.
+Phuzzle uses a consistent glass-inspired UI language:
 
-🚀 Run Locally
+Frosted overlays
 
-From the project root:
+Layered depth hierarchy
 
-python -m http.server 8000
+Fixed-width help panel to prevent layout shifts
 
-Then open:
+Carefully managed stacking contexts
 
-http://localhost:8000
-🌐 Deployment (GitHub Pages)
+Controlled backdrop blur usage
 
-When deploying:
+Every surface is intentional.
 
-Use relative asset paths
+🧱 Architecture Notes
 
-Avoid leading slashes
+Built using:
 
-Ensure images are inside /assets/
+Vanilla JavaScript
 
-Correct:
+HTML5
 
-assets/images/photo.jpg
+CSS (custom glass system)
 
-Incorrect:
+Modular structure for:
 
-/assets/images/photo.jpg
-🛠 Tech Stack
+stats
 
-HTML5 Canvas rendering
+profiles
 
-Vanilla JavaScript (no frameworks)
+modifiers
 
-Offscreen compositing for layered visual effects
+overlays
 
-CSS frosted glass UI styling
+input handling
 
-GitHub Pages hosting
+Designed for long-term expansion without framework lock-in.
 
-📦 Versioning
+🚀 Current Version
 
-Phuzzle follows semantic versioning:
+See release notes for latest feature additions and modifier updates.
 
-Patch: fixes and refinements
+Recent milestones include:
 
-Minor: feature additions and UX evolution
+Rotation mode integration
 
-Major: structural or gameplay system changes
+Fog of War system
 
-Current release: v2.1.0
+Fixed help panel architecture
 
-🧠 Design Philosophy
+Stats modal refinement
 
-Phuzzle is built as a lightweight, performance-focused puzzle system.
+Improved stacking context management
 
-Every update refines:
+Stable modal width system
 
-Interaction clarity
+🎯 Philosophy
 
-Visual tension
+Phuzzle began as a small gesture.
 
-Modifier balance
+It became a demonstration of product discipline:
 
-Player progression
+Polish over speed
 
-The goal is not complexity for its own sake, but layered polish.
+Clarity over noise
+
+Accessibility over novelty
+
+Structure over hacks
+
+This project reflects a commitment to building things properly — even when they start small.
+
+🔮 Roadmap
+
+Local profile system
+
+Unlockable image collections
+
+Persistent progression
+
+Additional modifier experiments
+
+Expanded accessibility features
+
+🧠 Built Under
+
+CAR-NOVA.i
+Human ingenuity × artificial collaboration
+Always thinking, so you don’t have to.
