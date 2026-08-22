@@ -259,6 +259,15 @@ const COLLECTIONS = {
     { src: "assets/images/highvis/nova_HV7.jpg", label: "Antique radio" },
     { src: "assets/images/highvis/nova_HV8.jpg", label: "Bicycle" },
     { src: "assets/images/highvis/nova_HV9.jpg", label: "Sewing machine" },
+    { src: "assets/images/highvis/nova_HV10.jpg", label: "Flower set" },
+    { src: "assets/images/highvis/nova_HV11.jpg", label: "Grandfather clock" },
+    { src: "assets/images/highvis/nova_HV12.jpg", label: "Jukebox" },
+    { src: "assets/images/highvis/nova_HV13.jpg", label: "Prop plane" },
+    { src: "assets/images/highvis/nova_HV14.jpg", label: "Queen Elizabeth" },
+    { src: "assets/images/highvis/nova_HV15.jpg", label: "Queen Elizabeth" },
+    { src: "assets/images/highvis/nova_HV16.jpg", label: "Queen Elizabeth" },
+    { src: "assets/images/highvis/nova_HV17.jpg", label: "Rotary phone" },
+    { src: "assets/images/highvis/nova_HV18.jpg", label: "Typewriter" },
   ],
 
 
