@@ -268,6 +268,8 @@ const COLLECTIONS = {
     { src: "assets/images/highvis/nova_HV16.jpg", label: "Queen Elizabeth" },
     { src: "assets/images/highvis/nova_HV17.jpg", label: "Rotary phone" },
     { src: "assets/images/highvis/nova_HV18.jpg", label: "Typewriter" },
+    { src: "assets/images/highvis/nova_HV19.jpg", label: "Vintage Diner" },
+    { src: "assets/images/highvis/nova_HV20.jpg", label: "Washboard cleaner" },
   ],
 
 
