@@ -164,7 +164,7 @@ const COLLECTIONS = {
     { src: "assets/images/nature/carson_04.jpg", label: "Yamnuska edge" },
     { src: "assets/images/nature/carson_08.jpg", label: "Foggy drive" },
     { src: "assets/images/nature/carson_09.jpg", label: "Mexican sunrise" },
-    { src: "assets/images/nature/carson_10.jpg", label: "Forgotten rail" },
+    { src: "assets/images/nature/carson_10.jpg", label: "Forgotten rail road" },
     { src: "assets/images/nature/carson_12.jpg", label: "Sentinel leaf" },
     { src: "assets/images/nature/carson_13.jpg", label: "Wise tree" },
     { src: "assets/images/nature/carson_14.jpg", label: "Standout leaf" },
